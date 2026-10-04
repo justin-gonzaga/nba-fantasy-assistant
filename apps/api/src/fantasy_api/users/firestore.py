@@ -2,8 +2,8 @@
 
 Only the API writes, through the server SDK and the API's service account (`roles/datastore.user`);
 the database's security rules deny every client (infra/terraform/modules/env/firestore.rules).
-Collections: `users/{uid}`, `invites/{id}`, `settings/{uid}`, `link_codes/{code}` and
-`sims/{uid}:{id}` (with a `uid` field).
+Collections: `users/{uid}`, `invites/{id}`, `settings/{uid}`, `draft_settings/{uid}`,
+`link_codes/{code}` and `sims/{uid}:{id}` (with a `uid` field).
 Every request reads afresh: no caching, so a removed
 member is refused on their next request.
 """
@@ -18,6 +18,7 @@ from typing import Any, TypeVar, cast
 from google.cloud import firestore
 from google.cloud.firestore_v1.base_query import FieldFilter
 
+from fantasy_api.users.draft_settings import DraftDoc
 from fantasy_api.users.model import Invite, Role, User
 from fantasy_api.users.settings import LinkCode, Settings
 from fantasy_api.users.sims import Plan, Sim
@@ -26,6 +27,7 @@ from fantasy_api.users.store import DeleteResult
 USERS = "users"
 INVITES = "invites"
 SETTINGS = "settings"
+DRAFT_SETTINGS = "draft_settings"
 LINK_CODES = "link_codes"
 SIMS = "sims"
 R = TypeVar("R")
@@ -111,6 +113,15 @@ def _settings(d: dict[str, Any]) -> Settings:
         telegram_chat_id=d.get("telegramChatId"),
         version=int(d["version"]),
     )
+
+
+def _draft_doc(doc: DraftDoc) -> dict[str, Any]:
+    # The validated document as JSON text: presets are read and written whole, never queried into.
+    return {"version": doc.version, "data": json.dumps(doc.data, separators=(",", ":"))}
+
+
+def _draft(d: dict[str, Any]) -> DraftDoc:
+    return DraftDoc(version=int(d["version"]), data=json.loads(d["data"]))
 
 
 def _sim_doc(uid: str, s: Sim) -> dict[str, Any]:
@@ -238,6 +249,7 @@ class FirestoreUserStore:
             saved = list(sims.get(transaction=tx))  # every read before the first write
             tx.delete(ref)
             tx.delete(self._db.collection(SETTINGS).document(uid))
+            tx.delete(self._db.collection(DRAFT_SETTINGS).document(uid))
             for sim in saved:
                 tx.delete(sim.reference)
             return "deleted"
@@ -274,6 +286,24 @@ class FirestoreUserStore:
             if stored != expected_version:
                 return False
             tx.set(ref, _settings_doc(settings))
+            return True
+
+        return bool(save(self._db.transaction()))
+
+    def get_draft_settings(self, uid: str) -> DraftDoc | None:
+        d = self._get(DRAFT_SETTINGS, uid)
+        return _draft(d) if d is not None else None
+
+    def save_draft_settings_if(self, uid: str, doc: DraftDoc, expected_version: int) -> bool:
+        ref = self._db.collection(DRAFT_SETTINGS).document(uid)
+
+        @firestore.transactional  # type: ignore[untyped-decorator,unused-ignore]
+        def save(tx: firestore.Transaction) -> bool:
+            snap = ref.get(transaction=tx)
+            stored = int((snap.to_dict() or {}).get("version", 0)) if snap.exists else 0
+            if stored != expected_version:
+                return False
+            tx.set(ref, _draft_doc(doc))
             return True
 
         return bool(save(self._db.transaction()))

@@ -17,7 +17,8 @@ from fastapi.responses import JSONResponse
 from fantasy_api import schemas
 from fantasy_api.auth import RateLimiter, current_user
 from fantasy_api.errors import ApiProblem
-from fantasy_api.users import sims_routes
+from fantasy_api.users import draft_settings_routes, sims_routes
+from fantasy_api.users.etag import etag_version
 from fantasy_api.users.model import User
 from fantasy_api.users.settings import InvalidSettingError, Settings
 from fantasy_api.users.settings_service import SettingsService, StaleSettingsError
@@ -38,14 +39,6 @@ Service = Annotated[SettingsService, Depends(settings_of)]
 
 def etag(s: Settings) -> str:
     return f'"settings-v{s.version}"'
-
-
-def _version(if_match: str) -> int | None:
-    tag = if_match.strip().removeprefix("W/").strip('"')
-    prefix = "settings-v"
-    if not tag.startswith(prefix) or not tag[len(prefix) :].isdigit():
-        return None
-    return int(tag[len(prefix) :])
 
 
 def to_schema(s: Settings) -> schemas.UserSettings:
@@ -92,7 +85,7 @@ def patch_settings(
             "Send If-Match with the ETag from GET /me/settings",
         )
     changes = body.model_dump(exclude_unset=True)
-    expected = _version(if_match)
+    expected = etag_version(if_match, "settings-v")
     try:
         updated = service.update(user.uid, -1 if expected is None else expected, changes)
     except InvalidSettingError as e:
@@ -136,6 +129,7 @@ def export(user: Me, service: Service) -> schemas.AccountExport:
     return schemas.AccountExport(
         profile=profile,
         settings=to_schema(service.get(user.uid)),
+        draft_settings=draft_settings_routes.to_schema(service.get_draft(user.uid)),
         sims=[sims_routes.to_full(x) for x in sims],
     )
 

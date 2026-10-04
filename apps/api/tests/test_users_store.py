@@ -213,3 +213,35 @@ def test_sims_mutate_atomically_and_go_with_the_user(store: UserStore) -> None:
     store.save_user(_user("u9", "o@example.com", role="owner"))
     assert store.delete_user_keeping_an_owner("u1") == "deleted"
     assert store.list_sims("u1") == []
+
+
+def test_draft_settings_compare_and_set(store: UserStore) -> None:
+    """APP-011 AC3: atomic compare-and-set on the version (0 when none); the doc round-trips."""
+    from fantasy_api.users.draft_settings import DraftDoc  # noqa: PLC0415
+
+    assert store.get_draft_settings("u1") is None
+    data = {
+        "activeId": "p1",
+        "presets": [{"id": "p1", "league": {"categories": ["pts", "reb"], "teams": 12}}],
+        "fx": {"sound": True, "volume": 0.6, "tick": "last10", "motion": "auto"},
+    }
+    first = DraftDoc(1, data)
+    assert store.save_draft_settings_if("u1", first, 0)
+    assert store.get_draft_settings("u1") == first
+    assert not store.save_draft_settings_if("u1", DraftDoc(1, {**data, "activeId": None}), 0)
+    assert store.get_draft_settings("u1") == first
+    assert store.save_draft_settings_if("u1", DraftDoc(2, {**data, "activeId": None}), 1)
+    got = store.get_draft_settings("u1")
+    assert got is not None
+    assert (got.version, got.data["activeId"]) == (2, None)
+    assert store.get_draft_settings("u2") is None  # per user
+
+
+def test_draft_settings_go_with_the_user(store: UserStore) -> None:
+    from fantasy_api.users.draft_settings import DraftDoc  # noqa: PLC0415
+
+    store.save_user(_user("u1", role="member"))
+    store.save_user(_user("u9", "o@example.com", role="owner"))
+    assert store.save_draft_settings_if("u1", DraftDoc(1), 0)
+    assert store.delete_user_keeping_an_owner("u1") == "deleted"
+    assert store.get_draft_settings("u1") is None

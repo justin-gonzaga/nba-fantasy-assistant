@@ -4,7 +4,7 @@ title: "Per-user draft settings and presets in the API (versioned, validated)"
 epic: EP-70 Dashboard
 phase: 7
 component: api
-status: todo
+status: done
 ready: true
 size: M
 autonomy: auto
@@ -12,9 +12,9 @@ gate: none
 depends_on: [APP-009]
 areas: [apps/api/**, packages/core/**]
 standards: [backend, testing, security]
-assignee:
+assignee: claude
 created: 2026-10-04
-completed:
+completed: 2026-10-04
 ---
 # APP-011 — Draft settings and presets (API)
 
@@ -67,24 +67,24 @@ Preset {
 | Signed-out | n/a | 401 as every `/me/*` |
 
 ## Acceptance criteria
-- [ ] AC1: `GET /me/draft-settings` returns the document and `ETag: "draft-v<n>"` (empty defaults for a new user);
+- [x] AC1: `GET /me/draft-settings` returns the document and `ETag: "draft-v<n>"` (empty defaults for a new user);
       `PUT` replaces it with `If-Match`; 412 (with `current`) when stale; 428 when missing.
       Verify: `uv run pytest -q apps/api/tests/test_draft_settings.py -k "get or put or etag or stale or missing"`
-- [ ] AC2: validation covers every range above, uniqueness of ids and names, the 10-preset and 16 KB limits, unknown
+- [x] AC2: validation covers every range above, uniqueness of ids and names, the 10-preset and 16 KB limits, unknown
       keys, and `unsupported-format`, each with the field path in the problem.
       Verify: `uv run pytest -q apps/api/tests/test_draft_settings.py -k "validation or limits or unsupported"` (table
       driven, one row per rule)
-- [ ] AC3: the same behaviour on the in-memory and Firestore stores (contract tests; the emulator ones run on CI);
+- [x] AC3: the same behaviour on the in-memory and Firestore stores (contract tests; the emulator ones run on CI);
       the write is a single atomic compare-and-set.
       Verify: `uv run pytest -q apps/api/tests/test_users_store.py -k draft` (memory) and the CI emulator job
-- [ ] AC4: account delete removes the document in the same transaction, and export includes it; another user's
+- [x] AC4: account delete removes the document in the same transaction, and export includes it; another user's
       request never sees it.
       Verify: `uv run pytest -q apps/api/tests/test_draft_settings.py -k "delete or export or isolation"`
-- [ ] AC5: OpenAPI and the generated TypeScript types are refreshed and the CI diff check passes; the new schema names
+- [x] AC5: OpenAPI and the generated TypeScript types are refreshed and the CI diff check passes; the new schema names
       appear camelCase.
       Verify: `just api-client` produces no diff on a second run; `apps/web/src/api/schema.gen.ts` contains
       `DraftSettings`
-- [ ] AC6: the supported-combinations constant is the only place the format gate lives: a test adds a fake supported
+- [x] AC6: the supported-combinations constant is the only place the format gate lives: a test adds a fake supported
       combination and the API accepts it without any other change.
       Verify: `uv run pytest -q apps/api/tests/test_draft_settings.py -k "supported_constant"`
 
@@ -97,17 +97,29 @@ n/a
 ## Evidence
 | AC | Type | Reference | Result |
 |---|---|---|---|
+| AC1 | unit | `test_draft_settings.py` -k "get or put or etag or stale or missing": empty defaults, whole-doc PUT, ETag follows the version, 412 with `current`, 428, bad JSON, 401, GET body round-trips into PUT | 13 passed |
+| AC2 | unit | `test_draft_settings.py` -k "validation or limits or unsupported": 49-row table (every range, uniqueness, unknown keys, field paths), 10 vs 11 presets, 413 declared and streamed, unsupported-format rows | 60 passed |
+| AC3 | contract | `test_users_store.py` -k draft: compare-and-set and removal with the user, on both backends (the Firestore variants skip locally, run in the CI emulator job) | 2 passed, 2 skipped (emulator) |
+| AC4 | unit | `test_draft_settings.py` -k "delete or export or isolation" | 3 passed |
+| AC5 | build | `just api-client` twice, no diff on the second run; `schema.gen.ts` has `DraftSettings`, `DraftPreset`, camelCase fields; `test_openapi.py` matches | pass |
+| AC6 | unit | `test_draft_settings.py` -k supported_constant: a fake (h2h_points, snake) pair is accepted by editing only `SUPPORTED_COMBINATIONS`; other rules still hold | 1 passed |
 
 ## Implementation history
 - 2026-10-04 — Specified from the owner's request for a saved draft settings page.
+- 2026-10-04 — Built: `users/draft_settings.py` (document, validation by field path, `SUPPORTED_COMBINATIONS`),
+  `draft_settings_routes.py` (GET/PUT, 16 KB capped body read, hand-validated so problems carry paths),
+  `UserStore.get_draft_settings` / `save_draft_settings_if` on both stores (Firestore `draft_settings/{uid}`, JSON text),
+  deletion in the same transaction as the user, `draftSettings` in `/me/export`. `just check`: 735 passed, 12 skipped.
 
 ## Decisions
+- PUT accepts the `version` key (ignored; `If-Match` decides) and `null` for `categories`/`weights`, so the web app can
+  send back exactly what GET returned.
 - A separate resource over extra fields on `/me/settings`: different size, different readers, whole-document edit.
 - Whole-document `PUT` with one version: presets are edited together on one page; merging is the web app's job
   (DRAFT-017, operation replay on a 412), not the server's.
 
 ## Known issues
-_None._
+- The Firestore contract variants only run in CI (emulator).
 
 ## Follow-ups
 - DRAFT-019 / DRAFT-021 extend the supported combinations.
