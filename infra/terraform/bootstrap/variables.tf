@@ -42,7 +42,7 @@ variable "github_repository" {
 variable "github_repository_id" {
   description = "Numeric GitHub repository ID (gh api repos/OWNER/NAME --jq .id). Matching on the immutable ID prevents a deleted-and-recreated repo with the same name from inheriting access."
   type        = string
-  default     = "1385384325"
+  default     = "1403819022"
 }
 
 variable "github_repository_owner_id" {
