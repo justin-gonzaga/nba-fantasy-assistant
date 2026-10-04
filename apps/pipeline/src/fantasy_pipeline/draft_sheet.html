@@ -1,0 +1,275 @@
+<title>2026 Auction Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root {
+  --bg: #F5F7F9; --surface: #FFFFFF; --ink: #14202B; --muted: #5B6B7A; --line: #DDE3E9;
+  --accent: #E4572E; --accent-ink: #FFFFFF; --good: #1E7F52; --bad: #B8382F; --chip: #EEF2F5;
+  --display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0D1318; --surface: #151E26; --ink: #E7EDF2; --muted: #93A3B3; --line: #25313C;
+    --accent: #FF7A45; --accent-ink: #1A0E08; --good: #4CC38A; --bad: #F0736A; --chip: #1D2833;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0D1318; --surface: #151E26; --ink: #E7EDF2; --muted: #93A3B3; --line: #25313C;
+  --accent: #FF7A45; --accent-ink: #1A0E08; --good: #4CC38A; --bad: #F0736A; --chip: #1D2833;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 14px; line-height: 1.45; padding-inline: 16px; padding-block: 0 48px; }
+.wrap { max-width: 760px; margin: 0 auto; }
+header.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 12px 10px; border-bottom: 1px solid var(--line); display: grid; gap: 10px; }
+h1 { font-family: var(--display); font-weight: 700; font-size: 28px; letter-spacing: .01em; margin: 0; line-height: 1; text-wrap: balance; }
+.sub { color: var(--muted); font-size: 12.5px; display: flex; flex-wrap: wrap; gap: 4px 12px; font-variant-numeric: tabular-nums; }
+.chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+.chips::-webkit-scrollbar { display: none; }
+.chip { flex: none; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 5px 11px; font: 500 13px var(--body); cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.chip:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; background: var(--surface); color: var(--ink); padding: 5px 12px; font: 600 13px var(--body); cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+input#q { flex: 1 1 160px; min-width: 0; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 8px; padding: 6px 10px; font: 14px var(--body); }
+.budget { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+ol.board { list-style: none; margin: 0; padding: 0; display: grid; }
+.tier { font-family: var(--display); font-weight: 600; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding-block: 14px 4px; display: flex; justify-content: space-between; border-bottom: 1px solid var(--line); }
+.row { display: grid; grid-template-columns: 4px 34px 1fr auto; gap: 0 10px; align-items: start; padding-block: 10px; border-bottom: 1px solid var(--line); }
+.stripe { align-self: stretch; border-radius: 2px; background: color-mix(in oklab, var(--accent) var(--mix), var(--line)); }
+.rk { font-family: var(--display); font-weight: 600; font-size: 18px; color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; line-height: 1.2; }
+.who { min-width: 0; display: grid; gap: 3px; }
+.name { font-weight: 600; font-size: 15px; display: flex; gap: 6px; flex-wrap: wrap; align-items: baseline; }
+.meta { color: var(--muted); font-size: 12px; font-weight: 400; }
+.line { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.line b { color: var(--ink); font-weight: 500; }
+.tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.tag { font-size: 11.5px; border-radius: 4px; padding: 1px 6px; background: var(--chip); font-variant-numeric: tabular-nums; }
+.tag.good { color: var(--good); } .tag.bad { color: var(--bad); }
+.tag.flag { background: color-mix(in oklab, var(--accent) 16%, var(--surface)); color: var(--ink); }
+.usd { font-family: var(--display); font-weight: 700; font-size: 26px; line-height: 1; text-align: right; font-variant-numeric: tabular-nums; }
+.usd small { font-size: 15px; color: var(--muted); margin-right: 1px; }
+.empty { padding: 24px 0; color: var(--muted); }
+.live { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 10px 12px; display: grid; gap: 8px; }
+.live summary { cursor: pointer; font-family: var(--display); font-weight: 700; font-size: 17px; letter-spacing: .02em; list-style: none; display: flex; justify-content: space-between; gap: 8px; }
+.live summary::-webkit-details-marker { display: none; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); gap: 6px; }
+.kpi { background: var(--chip); border-radius: 8px; padding: 6px 8px; }
+.kpi b { display: block; font-family: var(--display); font-size: 22px; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.kpi span { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.names { display: flex; flex-wrap: wrap; gap: 4px; }
+.status { font-size: 12px; color: var(--muted); }
+.status.warn { color: var(--bad); }
+.cap { font-family: var(--display); font-weight: 600; font-size: 15px; color: var(--accent); white-space: nowrap; text-align: right; }
+.row.sold { opacity: .45; }
+.row.mine { box-shadow: inset 3px 0 0 var(--accent); }
+.entry { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding-top: 8px; }
+.entry select, .entry input { border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 8px; padding: 6px 8px; font: 14px var(--body); }
+.entry input { width: 80px; font-variant-numeric: tabular-nums; }
+.btn { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 8px; padding: 6px 12px; font: 600 13px var(--body); cursor: pointer; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn:focus-visible, .entry select:focus-visible, .entry input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.row { cursor: pointer; }
+.tbl { overflow-x: auto; }
+.tbl table { border-collapse: collapse; width: 100%; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.tbl th, .tbl td { text-align: right; padding: 3px 6px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.tbl th:first-child, .tbl td:first-child { text-align: left; }
+.tbl tr.me td { color: var(--accent); font-weight: 600; }footer { color: var(--muted); font-size: 12px; padding-top: 18px; display: grid; gap: 6px; max-width: 65ch; }
+@media (prefers-reduced-motion: no-preference) { .chip, .seg button { transition: background .12s, color .12s; } }
+</style>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>2026 Auction Board</h1>
+      <div class="sub" id="sub"></div>
+    </div>
+    <div class="chips" id="variants" role="toolbar" aria-label="Build"></div>
+    <div class="bar">
+      <div class="seg" id="pos" role="group" aria-label="Position">
+        <button type="button" data-p="" aria-pressed="true">All</button>
+        <button type="button" data-p="G" aria-pressed="false">G</button>
+        <button type="button" data-p="F" aria-pressed="false">F</button>
+        <button type="button" data-p="C" aria-pressed="false">C</button>
+      </div>
+      <input id="q" type="search" placeholder="Find a player" autocomplete="off" aria-label="Find a player">
+    </div>
+    <div class="budget" id="budget"></div>
+  <details class="live" id="live" open>
+    <summary><span>Draft night</span><span class="status" id="status">Connecting…</span></summary>
+    <div class="bar">
+      <label class="lbl" for="me">My team</label>
+      <select id="me" class="btn"></select>
+      <label class="lbl" for="showSold"><input type="checkbox" id="showSold"> Show sold</label>
+      <button type="button" class="btn" id="undo">Undo last pick</button>
+    </div>
+    <div class="kpis" id="kpis"></div>
+    <div><div class="lbl">Nominate (others value them more than your build)</div><div class="names" id="hints"></div></div>
+    <div><div class="lbl">Best for your build</div><div class="names" id="targets"></div></div>
+    <details><summary class="lbl">All teams</summary><div class="tbl" id="teams"></div></details>
+  </details>
+  </header>
+  <ol class="board" id="board"></ol>
+  <footer id="foot"></footer>
+</div>
+<script>__LIVE_JS__</script>
+<script>
+const D = __DATA__;
+const ELIG = { "G": ["G"], "F": ["F"], "C": ["C"], "G-F": ["G", "F"], "F-G": ["G", "F"], "F-C": ["F", "C"], "C-F": ["F", "C"] };
+const m = D.meta;
+const TEAMS = Array.from({ length: m.teams }, (_, i) => "Team " + (i + 1));
+const SLOTS = m.slots;
+const state = { v: D.variants[0].key, p: "", q: "", me: TEAMS[0], picks: {}, open: null, showSold: false };
+let db = null, online = false;
+const pending = new Map(); // pid -> pick written here but not yet confirmed online
+const pendingDeletes = new Set();
+let overOk = null; // pid whose over-max-bid price was confirmed with a second Save
+try { const s = JSON.parse(localStorage.getItem("board") || "{}"); if (D.variants.some(x => x.key === s.v)) state.v = s.v; if (s.p) state.p = s.p; if (TEAMS.includes(s.me)) state.me = s.me; } catch (e) {}
+try { const lp = JSON.parse(localStorage.getItem("board-picks") || "{}"); if (lp && typeof lp === "object") state.picks = lp; } catch (e) {}
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+$("sub").innerHTML = [m.teams + " teams", "$" + m.budget + " budget", m.pool + " drafted", m.scoring, "model " + m.method, "updated " + m.generated].map(x => "<span>" + esc(x) + "</span>").join("");
+$("foot").innerHTML = "<div>Values are auction dollars for this league: G-score per category, replacement level from the " + m.pool + "-player pool, $1 minimum per roster spot. Tiers break where value drops sharply.</div><div>Bid ≤ is your ceiling: the player's value re-priced for the money left in the league (inflation), adjusted up to ±25% for how well he fits your roster so far, and never above your max bid. Nominate suggestions are players other teams should value more than your build does.</div><div>Tags show a player's strongest and weakest categories (standard deviations vs the draftable pool). Bounce-back = chance of jumping 50+ value ranks after a short season. Positions come from NBA listings and may differ slightly from Yahoo.</div>";
+$("me").innerHTML = TEAMS.map(x => '<option value="' + x + '">' + x + "</option>").join("");
+$("me").value = state.me;
+function save() { try { localStorage.setItem("board", JSON.stringify({ v: state.v, p: state.p, me: state.me })); } catch (e) {} }
+function saveLocalPicks() { try { localStorage.setItem("board-picks", JSON.stringify(state.picks)); } catch (e) {} }
+function variant() { return D.variants.find(v => v.key === state.v); }
+function picksList() { return Object.values(state.picks).sort((a, b) => a.n - b.n); }
+function chips() { $("variants").innerHTML = D.variants.map(v => '<button type="button" class="chip" data-v="' + v.key + '" aria-pressed="' + (v.key === state.v) + '">' + esc(v.label) + "</button>").join(""); }
+function fmt(x, d) { return x == null ? "–" : x.toFixed(d); }
+function tags(scores, v) {
+  const punted = v.key.startsWith("punt_") ? D.catKeys.indexOf(v.key.slice(5)) : -1;
+  const idx = scores.map((s, i) => [s, i]).filter(([, i]) => i !== punted);
+  const hi = idx.filter(([s]) => s >= 0.75).sort((a, b) => b[0] - a[0]).slice(0, 3);
+  const lo = idx.filter(([s]) => s <= -0.75).sort((a, b) => a[0] - b[0]).slice(0, 2);
+  return hi.map(([s, i]) => '<span class="tag good">' + D.cats[i] + " +" + s.toFixed(1) + "</span>").join("") + lo.map(([s, i]) => '<span class="tag bad">' + D.cats[i] + " " + s.toFixed(1) + "</span>").join("");
+}
+function advice() {
+  const v = variant();
+  const punted = new Set(v.key.startsWith("punt_") ? [D.catKeys.indexOf(v.key.slice(5))] : []);
+  const players = v.rows.map(r => ({ id: r[0], usd: r[2] ?? 1, z: r[4] }));
+  return LIVE.advise(players, picksList(), TEAMS, state.me, m.budget, SLOTS, punted);
+}
+function name(pid) { return D.players[pid] ? D.players[pid].n : pid; }
+function renderLive(a) {
+  const me = a.teams[state.me];
+  $("kpis").innerHTML = [["$" + me.max_bid, "My max bid"], ["$" + me.left, "My $ left"], [me.open, "My open spots"], ["×" + a.inflation.toFixed(2), "Inflation"], [picksList().length + "/" + m.pool, "Sold"]].map(([b, s]) => '<div class="kpi"><b>' + b + "</b><span>" + s + "</span></div>").join("");
+  const chipList = ids => ids.map(id => '<span class="tag flag">' + esc(name(id)) + " · $" + Math.round(a.players[id].adj) + "</span>").join("") || '<span class="status">None right now</span>';
+  $("hints").innerHTML = chipList(a.hints);
+  $("targets").innerHTML = chipList(a.targets.slice(0, 6));
+  $("teams").innerHTML = "<table><thead><tr><th>Team</th><th>$ left</th><th>Open</th><th>Max bid</th></tr></thead><tbody>" + TEAMS.map(x => { const s = a.teams[x]; return '<tr class="' + (x === state.me ? "me" : "") + '"><td>' + x + "</td><td>$" + s.left + "</td><td>" + s.open + "</td><td>$" + s.max_bid + "</td></tr>"; }).join("") + "</tbody></table>";
+}
+function render() {
+  const v = variant();
+  const a = advice();
+  renderLive(a);
+  const q = state.q.trim().toLowerCase();
+  let spent = 0, count = 0, lastTier = null, html = "";
+  const maxTier = Math.max(...v.rows.map(r => r[3]));
+  for (const [pid, rank, usd, tier, scores] of v.rows.slice(0, 200)) {
+    const p = D.players[pid];
+    const sold = state.picks[pid];
+    if (sold && !state.showSold) continue;
+    if (state.p && !(ELIG[p.p] || []).includes(state.p)) continue;
+    if (q && !p.n.toLowerCase().includes(q)) continue;
+    if (tier !== lastTier) {
+      const tr = v.rows.filter(r => r[3] === tier);
+      const lo = Math.min(...tr.map(r => r[2] || 0)), hi = Math.max(...tr.map(r => r[2] || 0));
+      html += '<li class="tier"><span>Tier ' + tier + "</span><span>$" + lo + (hi !== lo ? "–" + hi : "") + "</span></li>";
+      lastTier = tier;
+    }
+    const mix = Math.round(90 - 70 * (tier - 1) / Math.max(1, maxTier - 1));
+    const l = p.l;
+    const line = "<b>" + fmt(l[0], 1) + "</b> pts · <b>" + fmt(l[1], 1) + "</b> reb · <b>" + fmt(l[2], 1) + "</b> ast · <b>" + fmt(l[3], 1) + "</b> stl · <b>" + fmt(l[4], 1) + "</b> blk · <b>" + fmt(l[5], 1) + "</b> 3pm · <b>" + fmt(l[6], 1) + "</b> to · FG <b>" + (p.fg ? (p.fg * 100).toFixed(1) : "–") + "</b> · FT <b>" + (p.ft ? (p.ft * 100).toFixed(1) : "–") + "</b> · <b>" + (p.g ?? "–") + "</b> g";
+    const flags = (p.out ? '<span class="tag bad">' + esc(p.out) + "</span>" : "") + (p.bb ? '<span class="tag flag">Bounce-back ' + Math.round(p.bb * 100) + "%</span>" : "") + (p.rk ? '<span class="tag flag">Rookie</span>' : "");
+    const r = a.players[pid];
+    let right = '<div class="usd"><small>$</small>' + (usd ?? "–") + "</div>";
+    if (sold) right = '<div class="cap">' + esc(sold.team) + " $" + sold.price + "</div>";
+    else if (r) right += '<div class="cap">Bid ≤ $' + r.ceiling + (r.fit > 1.05 ? " ▲" : r.fit < 0.95 ? " ▼" : "") + "</div>";
+    const entry = state.open === pid ? '<form class="entry" data-pid="' + pid + '"><select id="win-team" aria-label="Winning team">' + TEAMS.map(x => '<option' + ((sold ? sold.team : state.me) === x ? " selected" : "") + ">" + x + "</option>").join("") + '</select><input id="win-price" type="number" inputmode="numeric" min="1" max="' + m.budget + '" value="' + (sold ? sold.price : Math.max(1, r ? Math.round(r.adj) : 1)) + '" aria-label="Price"><button class="btn primary" type="submit">Save</button>' + (sold ? '<button class="btn" type="button" data-unsell="' + pid + '">Unsell</button>' : "") + '<button class="btn" type="button" data-cancel="1">Cancel</button></form>' : "";
+    html += '<li class="row' + (sold ? " sold" : "") + (sold && sold.team === state.me ? " mine" : "") + '" data-pid="' + pid + '"><span class="stripe" style="--mix:' + mix + '%"></span><span class="rk">' + rank + '</span><div class="who"><div class="name">' + esc(p.n) + '<span class="meta">' + esc([p.p, p.t, p.a ? p.a + " yrs" : ""].filter(Boolean).join(" · ")) + '</span></div><div class="line">' + line + '</div><div class="tags">' + tags(scores, v) + flags + "</div></div><div>" + right + "</div>" + entry + "</li>";
+    if (!sold) { spent += usd || 0; count += 1; }
+  }
+  $("board").innerHTML = html || '<li class="empty">No players match. Clear the search or pick another position.</li>';
+  $("budget").textContent = count + " unsold players shown · $" + spent.toLocaleString() + " of value · tap a player to record a sale";
+  const inp = $("win-price"); if (inp) inp.focus({ preventScroll: true });
+}
+async function recordSale(pid, team, price) {
+  const n = state.picks[pid] ? state.picks[pid].n : Date.now(); // time order; no clash between devices
+  const rec = { pid, team, price, n, at: new Date().toISOString() };
+  state.picks[pid] = rec; pendingDeletes.delete(pid); pending.set(pid, rec); saveLocalPicks(); state.open = null; overOk = null; render();
+  await pushPending();
+}
+async function unsell(pid) {
+  delete state.picks[pid]; pending.delete(pid); pendingDeletes.add(pid); saveLocalPicks(); state.open = null; render();
+  await pushPending();
+}
+async function pushPending() {
+  if (!db) return;
+  for (const [pid, rec] of [...pending]) {
+    try { await db.collection("picks").doc(pid).set(rec); pending.delete(pid); }
+    catch (e) { setStatus(pending.size + " pick(s) not saved online yet (" + (e.code || "error") + "). Kept on this device; retrying.", true); }
+  }
+  for (const pid of [...pendingDeletes]) {
+    try { await db.collection("picks").doc(pid).delete(); pendingDeletes.delete(pid); }
+    catch (e) { setStatus("An undo isn't saved online yet. Kept on this device; retrying.", true); }
+  }
+}
+function setStatus(text, warn) { const s = $("status"); s.textContent = text; s.classList.toggle("warn", !!warn); }
+$("variants").addEventListener("click", e => { const b = e.target.closest("[data-v]"); if (!b) return; state.v = b.dataset.v; chips(); render(); save(); });
+$("pos").addEventListener("click", e => { const b = e.target.closest("[data-p]"); if (!b) return; state.p = b.dataset.p; for (const x of $("pos").children) x.setAttribute("aria-pressed", String(x === b)); render(); save(); });
+$("q").addEventListener("input", e => { state.q = e.target.value; render(); });
+$("me").addEventListener("change", e => { state.me = e.target.value; save(); render(); });
+$("showSold").addEventListener("change", e => { state.showSold = e.target.checked; render(); });
+$("undo").addEventListener("click", () => { const last = picksList().pop(); if (last) unsell(last.pid); });
+$("board").addEventListener("click", e => {
+  if (e.target.closest("form.entry")) {
+    if (e.target.dataset.cancel) { state.open = null; render(); }
+    if (e.target.dataset.unsell) unsell(e.target.dataset.unsell);
+    return;
+  }
+  const row = e.target.closest(".row"); if (!row) return;
+  state.open = state.open === row.dataset.pid ? null : row.dataset.pid; render();
+});
+$("board").addEventListener("submit", e => {
+  e.preventDefault();
+  const f = e.target, price = parseInt($("win-price").value, 10), team = $("win-team").value;
+  const inp = $("win-price"); inp.setCustomValidity("");
+  if (!(price >= 1 && price <= m.budget)) { inp.setCustomValidity("Enter a price between $1 and $" + m.budget); inp.reportValidity(); return; }
+  const others = picksList().filter(x => x.pid !== f.dataset.pid);
+  const cap = LIVE.teamState(others, TEAMS, m.budget, SLOTS)[team].max_bid;
+  if (price > cap && overOk !== f.dataset.pid) {
+    overOk = f.dataset.pid;
+    inp.setCustomValidity(team + " can bid at most $" + cap + ". Check the price, or press Save again to record it anyway.");
+    inp.reportValidity(); return;
+  }
+  recordSale(f.dataset.pid, team, price);
+});
+for (const x of $("pos").children) x.setAttribute("aria-pressed", String(x.dataset.p === state.p));
+chips(); render();
+setStatus("Saved on this device");
+(async () => {
+  try { db = await window.claude?.use?.("db"); } catch (e) { db = null; }
+  if (!db) { setStatus("Saved on this device only"); return; }
+  db.collection("picks").onSnapshot(snap => {
+    const next = {};
+    for (const d of snap.docs) { const x = d.data(); if (x && x.pid) next[x.pid] = x; }
+    // keep this device's unconfirmed work: pending sales win, pending undos stay undone
+    for (const [pid, rec] of pending) next[pid] = rec;
+    for (const pid of pendingDeletes) delete next[pid];
+    // first connection: push picks that were only on this device
+    if (!online) for (const [pid, rec] of Object.entries(state.picks)) if (!next[pid]) { next[pid] = rec; pending.set(pid, rec); }
+    state.picks = next; saveLocalPicks(); online = true;
+    const waiting = pending.size + pendingDeletes.size;
+    setStatus(waiting ? waiting + " change(s) waiting to save online" : "Saved online · " + snap.size + " picks", waiting > 0);
+    render(); if (waiting) pushPending();
+  }, err => setStatus("Can't reach saved picks (" + err.code + "). Using this device.", true));
+})();
+</script>

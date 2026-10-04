@@ -1,0 +1,39 @@
+# Deletes CI ephemeral BigQuery datasets (ci_pr<N>_*) in dev older than 2 days (INFRA-002).
+# CI (FND-006) creates them per PR with the label ci=true; this job removes leftovers.
+name: ci-dataset-cleanup
+
+on:
+  schedule:
+    - cron: "17 16 * * *" # 03:17 AEDT, outside the awake window
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: deploy@nbafa-hdfo-dev.iam.gserviceaccount.com
+      - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+      - name: Delete ci_pr* datasets older than 2 days
+        env:
+          PROJECT: nbafa-hdfo-dev
+        run: |
+          cutoff=$(( $(date +%s) - 2*86400 ))
+          bq ls --project_id="$PROJECT" --filter='labels.ci:true' --format=json --max_results=1000 \
+            | jq -r '.[].datasetReference.datasetId' \
+            | { grep '^ci_pr' || true; } > /tmp/ds.txt
+          while read -r ds; do
+            [ -z "$ds" ] && continue
+            created=$(bq show --format=json "$PROJECT:$ds" | jq -r '.creationTime')
+            if [ $(( created / 1000 )) -lt "$cutoff" ]; then
+              echo "deleting $ds"
+              bq rm -r -f -d "$PROJECT:$ds"
+            fi
+          done < /tmp/ds.txt

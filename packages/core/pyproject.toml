@@ -1,0 +1,21 @@
+[project]
+name = "fantasy-core"
+version = "0.1.0"
+description = "Shared foundations: settings, logging, clock/as-of, league rules, storage"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "dikit",
+    "pydantic-settings>=2.6",
+    "structlog>=24.4",
+    "tzdata>=2025.1",
+]
+
+[tool.uv.sources]
+dikit = { workspace = true }
+
+[build-system]
+requires = ["uv_build>=0.12,<0.13"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "fantasy_core"

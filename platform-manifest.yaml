@@ -1,0 +1,115 @@
+# Every tracked file, by layer (D-58; supersedes harness-manifest.yaml from D-46).
+# harness  = how Claude works on any project (must stay project-agnostic)
+# platform = reusable code and infra for any decision product (must not import domain code)
+# mixed    = generic logic and NBA specifics in one file: GEN-003 splits these
+# domain   = this product (NBA fantasy): sources, rules, models, screens, docs about them
+# Patterns are fnmatch globs over repo paths ("*" also crosses "/"). The first matching section wins,
+# in the order harness, platform, mixed, domain. `python tools/manifest_check.py` lists unclassified files.
+version: 1
+updated: 2026-09-28
+
+harness:
+  - CLAUDE.md
+  - justfile
+  - pyproject.toml
+  - uv.lock
+  - .python-version
+  - .gitignore
+  - .gitattributes
+  - .pre-commit-config.yaml
+  - env.example
+  - platform-manifest.yaml
+  - README.md
+  - .claude/*
+  - .github/*
+  - tools/tasks.py
+  - tools/doctor.py
+  - tools/manifest_check.py
+  - tools/tests/test_tasks_cli.py
+  - tools/tests/test_justfile.py
+  - tools/tests/test_precommit.py
+  - tools/tests/test_manifest_check.py
+  - docs/standards/*
+  - docs/agents/*
+  - docs/guides/local-development.md
+  - docs/runbooks/owner-setup.md
+  - docs/project/tasks/README.md
+  - docs/project/tasks/_template.md
+  - docs/architecture/adr/0000-template.md
+  - docs/architecture/adr/README.md
+  - docs/platform/*
+
+platform:
+  - packages/core/src/fantasy_core/__init__.py
+  - packages/core/src/fantasy_core/py.typed
+  - Dockerfile                                              # one image, api + job entrypoints (FND-015)
+  - .dockerignore
+  - docker/*
+  - packages/dikit/*                                        # the kernel (D-60): never imports domain code
+  - packages/core/tests/*
+  - packages/*/pyproject.toml
+  - packages/*/README.md
+  - packages/*/src/*/__init__.py
+  - packages/*/src/*/py.typed
+  - packages/*/tests/test_import.py
+  - packages/features/*
+  - infra/terraform/modules/*
+  - infra/terraform/bootstrap/*
+  - tools/iam_negative_tests.py
+  - tools/tests/test_iam_negative_tests.py
+  - warehouse/macros/generate_schema_name.sql
+  - warehouse/dbt_project.yml
+  - warehouse/profiles.yml
+  - warehouse/packages.yml
+  - warehouse/package-lock.yml
+  - warehouse/.gitignore
+  - warehouse/README.md
+  - apps/web/src/components/ui/*
+  - apps/web/src/api/client.tsx
+  - apps/web/src/main.tsx
+  - apps/web/src/index.css
+  - apps/web/src/test/*
+  - apps/web/*.json
+  - apps/web/vite.config.ts   # explicit: `apps/web/*.ts` also matched subfolders (e2e specs are domain)
+  - apps/web/eslint.config.js
+  - apps/web/*.yaml
+  - apps/web/index.html
+  - apps/web/README.md
+  - apps/web/public/*
+  - apps/web/.gitignore
+  - apps/web/.prettierrc.json
+  - apps/pipeline/src/fantasy_pipeline/__init__.py
+  - apps/pipeline/src/fantasy_pipeline/__main__.py
+  - apps/pipeline/src/fantasy_pipeline/py.typed
+  - apps/pipeline/src/fantasy_pipeline/telegram.py
+  - apps/pipeline/tests/test_telegram.py
+  - apps/pipeline/tests/conftest.py
+  - tools/schedule_daily.ps1
+  - docs/runbooks/gcp-bootstrap.md
+  - docs/runbooks/gcp-environments.md
+  - docs/infra/*
+  - docs/architecture/technology-evaluation.md
+
+mixed:  # GEN-003: split into a platform part + a domain part
+  - packages/ingest/src/fantasy_ingest/draft_pool.py        # the resumable fetch-store runner (platform) + NBA plan (domain)
+  - packages/ingest/src/fantasy_ingest/daily.py             # the daily refresh pattern (platform) + NBA sources (domain)
+  - packages/evaluation/src/fantasy_evaluation/preseason_backtest.py  # rolling-origin folds (platform); bootstrap + Spearman moved to dikit (GEN-006)
+  - packages/evaluation/src/fantasy_evaluation/breakout_backtest.py   # precision@k, reliability bins (platform); bootstrap moved to dikit (GEN-006)
+  - packages/models/src/fantasy_models/preseason/breakouts.py  # GBM wrapper (platform, optional lightgbm); ridge/logistic moved to dikit (GEN-007)
+  - packages/models/src/fantasy_models/valuation.py        # z/G-score, replacement, VOR -> $ (platform shape)
+  - packages/decision/src/fantasy_decision/brief.py         # normal-approx win probabilities, evidence rendering
+  - apps/pipeline/src/fantasy_pipeline/cli.py               # CLI shell (platform) + NBA commands (domain)
+  - apps/pipeline/src/fantasy_pipeline/warehouse.py         # BigQuery wrapper (platform) + SQL (domain)
+  - apps/pipeline/src/fantasy_pipeline/overrides.py         # owner-reviewed adjustments pattern
+
+domain:
+  - packages/*
+  - apps/*
+  - warehouse/*
+  - infra/terraform/envs/*
+  - tools/yahoo_login.py
+  - tools/golden_eval.py
+  - tools/tests/test_yahoo_login.py
+  - tools/tests/test_ci_workflow.py   # this project's deploy order (API before site)
+  - docs/*
+  - paper/*

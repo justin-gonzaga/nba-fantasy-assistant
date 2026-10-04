@@ -1,0 +1,23 @@
+# Line endings (FND-005): LF in the repository and the working tree on every OS.
+* text=auto eol=lf
+
+# Windows-only scripts keep CRLF.
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binaries: no line-ending conversion, no textual diff.
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.zip binary
+*.gz binary
+*.parquet binary
+*.duckdb binary
+*.xlsx binary
+*.woff binary
+*.woff2 binary

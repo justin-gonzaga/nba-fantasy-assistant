@@ -1,0 +1,197 @@
+version: 2
+
+models:
+  - name: stg_nba_stats__snapshots
+    description: One row per raw stats.nba.com snapshot (payload files only), with endpoint, key and observed_at parsed from the path.
+    columns:
+      - name: file_uri
+        description: GCS URI of the snapshot file
+        data_tests: [unique, not_null]
+      - name: endpoint
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['leaguegamelog', 'leaguedashplayerstats', 'commonteamroster', 'drafthistory', 'boxscoretraditionalv3', 'leaguedashteamstats']
+      - name: snapshot_key
+        description: Request key, e.g. season=2015-16/player_or_team=P
+        data_tests: [not_null]
+      - name: observed_at
+        description: Capture time (UTC), from the file name
+        data_tests: [not_null]
+      - name: payload
+        data_tests: [not_null]
+
+  - name: stg_nba_stats__player_game
+    description: One row per player per regular-season game (latest snapshot per season).
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [nba_player_id, nba_game_id]
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "fgm <= fga and fg3m <= fg3a and ftm <= fta and fg3m <= fgm and oreb + dreb = reb"
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "pts = 2 * (fgm - fg3m) + 3 * fg3m + ftm"
+    columns:
+      - name: season
+        data_tests: [not_null]
+      - name: nba_player_id
+        data_tests: [not_null]
+      - name: nba_team_id
+        data_tests: [not_null]
+      - name: nba_game_id
+        data_tests: [not_null]
+      - name: game_date
+        data_tests: [not_null]
+      - name: minutes
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments: {min_value: 0, max_value: 70}
+      - name: pts
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments: {min_value: 0, max_value: 110}
+
+  - name: stg_nba_stats__team_game
+    description: One row per team per regular-season game.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [nba_team_id, nba_game_id]
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "fgm <= fga and fg3m <= fg3a and ftm <= fta"
+    columns:
+      - name: nba_team_id
+        data_tests: [not_null]
+      - name: nba_game_id
+        data_tests: [not_null]
+      - name: pts
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments: {min_value: 50, max_value: 200}
+
+  - name: stg_nba_stats__player_season_totals
+    description: One row per player per regular season (season totals; includes age).
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [season, nba_player_id]
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "fgm <= fga and fg3m <= fg3a and ftm <= fta"
+    columns:
+      - name: nba_player_id
+        data_tests: [not_null]
+      - name: age
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments: {min_value: 17, max_value: 46}
+      - name: games_played
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments: {min_value: 1, max_value: 85}
+
+  - name: stg_nba_stats__roster
+    description: Current-season roster, one row per player (latest capture wins).
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [season, nba_player_id]
+    columns:
+      - name: nba_player_id
+        data_tests: [not_null]
+      - name: nba_team_id
+        data_tests: [not_null]
+      - name: nba_position
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['G', 'F', 'C', 'G-F', 'F-G', 'F-C', 'C-F']
+      - name: birth_date
+        data_tests: [not_null]
+      - name: experience_years
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments: {min_value: 0, max_value: 25}
+
+  - name: stg_nba_stats__draft_pick
+    description: Every NBA draft pick, all years.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [draft_year, nba_player_id]
+    columns:
+      - name: nba_player_id
+        data_tests: [not_null]
+      - name: draft_year
+        data_tests: [not_null]
+      - name: overall_pick
+        data_tests: [not_null]
+
+  - name: stg_nba_stats__preseason_player_game
+    description: One row per player per pre-season (exhibition) game (DATA-030).
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [nba_player_id, nba_game_id]
+    columns:
+      - name: nba_player_id
+        data_tests: [not_null]
+      - name: game_date
+        data_tests: [not_null]
+      - name: minutes
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments: {min_value: 0, max_value: 70}
+
+  - name: stg_nba_stats__preseason_starter
+    description: One row per player per pre-season game from the v3 box score; is_starter = listed with a starting position.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [nba_player_id, nba_game_id]
+    columns:
+      - name: nba_game_id
+        data_tests: [not_null]
+      - name: is_starter
+        data_tests: [not_null]
+
+  - name: stg_nba_stats__head_coach
+    description: >
+      One head coach per team and season (DATA-038), from CommonTeamRoster's Coaches result set:
+      the end-of-season coach, so a mid-season change shows only the final coach.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [season, nba_team_id]
+    columns:
+      - name: nba_team_id
+        data_tests: [not_null]
+      - name: coach_id
+        data_tests: [not_null]
+      - name: coach_name
+        data_tests: [not_null]
+
+  - name: stg_nba_stats__team_season_advanced
+    description: Team pace and offensive/defensive rating per regular season (DATA-038).
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [season, nba_team_id]
+    columns:
+      - name: pace
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments: {min_value: 90, max_value: 110}
+      - name: off_rating
+        data_tests: [not_null]
+      - name: def_rating
+        data_tests: [not_null]

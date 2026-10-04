@@ -1,0 +1,74 @@
+version: 2
+
+models:
+  - name: int_player_season
+    description: One row per player per regular season (game-log totals, games, minutes, age). Grain for preseason projections.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [season, nba_player_id]
+    columns:
+      - name: season
+        data_tests: [not_null]
+      - name: nba_player_id
+        data_tests: [not_null]
+      - name: age
+        description: Age from the official season totals
+        data_tests: [not_null]
+      - name: games_played
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments: {min_value: 1, max_value: 85}
+
+  - name: int_player_profile
+    description: One row per player on a current (profile-season) roster.
+    columns:
+      - name: nba_player_id
+        data_tests: [unique, not_null]
+      - name: nba_team_id
+        data_tests: [not_null]
+      - name: age_at_midseason
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments: {min_value: 17, max_value: 46}
+      - name: changed_team
+        data_tests: [not_null]
+
+  - name: int_preseason_role
+    description: Pre-season minutes/starts per player x season, using only games up to 2 days before opening night (G-24 / D-57).
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [season, nba_player_id]
+    columns:
+      - name: pre_start_share
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments: {min_value: 0, max_value: 1}
+      - name: pre_team_minutes_share
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments: {min_value: 0, max_value: 1}
+
+  - name: int_team_season_context
+    description: >
+      Team context per team-season for ANL-010 (DATA-038): head coach and whether he is new
+      (null when either season's coach is unknown), pace and ratings, and the top-3 share of the
+      team's minutes and field-goal attempts. The coach is missing when the source lists none
+      (a coach fired after the season).
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [season, nba_team_id]
+    columns:
+      - name: pace
+        data_tests: [not_null]
+      - name: minutes_top3_share
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments: {min_value: 0, max_value: 1}
+      - name: fga_top3_share
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments: {min_value: 0, max_value: 1}

@@ -1,0 +1,50 @@
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+secrets/
+
+# Local data (bronze/silver/gold, models, runs) — system of record lives outside git
+data/
+*.duckdb
+*.duckdb.wal
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# Node
+node_modules/
+apps/web/dist/
+
+# dbt
+warehouse/target/
+warehouse/logs/
+warehouse/dbt_packages/
+
+# Tooling / OS
+.worktrees/
+.claude/settings.local.json
+.claude/agent-memory-local/
+.DS_Store
+Thumbs.db
+.idea/
+
+# Terraform local state/vars (identifiers must not reach the public repo)
+*.tfvars
+!*.tfvars.example
+.terraform/
+*.tfstate
+*.tfstate.*
+# Saved plans hold sensitive values (e.g. the billing account) in cleartext
+*.tfplan
+crash.log

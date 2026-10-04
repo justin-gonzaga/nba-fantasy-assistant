@@ -1,0 +1,564 @@
+@import 'tailwindcss';
+
+/*
+ * "Courtside" design tokens (docs/standards/design-language.md §2–§4). This file is the single source:
+ * components use these tokens and the primitive classes below, never raw colours, shadows or durations.
+ * Both themes are designed, not inverted; the theme follows the phone (U7).
+ */
+:root {
+  --ground: #f7f7f5;
+  --surface: #ffffff;
+  --surface-2: #f1f1ee;
+  --line: #e4e4e0;
+  --ink: #18181b;
+  --ink-2: #3f3f46;
+  --muted: #5f5f66;
+  --accent: #c2410c;
+  --accent-tint: #fff1e8;
+  --accent-ink: #9a3412;
+  --win: #1d4ed8;
+  --lose: #c2410c;
+  --even: #5f5f66;
+  --ok: #15803d;
+  --warn: #854d0e;
+  --urgent: #b91c1c;
+  --button: #18181b;
+  --button-ink: #ffffff;
+  /* The background a surface takes when raised (hover). */
+  --raised: #ffffff;
+  --scrim: rgb(24 24 27 / 0.32);
+
+  /* Elevation 0–3: flat, resting card, hover/raised, overlay. */
+  --shadow-0: 0 0 #0000;
+  --shadow-1: 0 1px 2px rgb(24 24 27 / 0.06);
+  --shadow-2: 0 4px 16px rgb(24 24 27 / 0.08);
+  --shadow-3: 0 16px 48px rgb(24 24 27 / 0.16);
+
+  /* Motion (§3): the only durations components use. */
+  --motion-quick: 120ms;
+  --motion-base: 220ms;
+  --motion-sheet: 360ms;
+  --motion-sheet-out: 240ms;
+  --motion-shimmer: 1600ms;
+  --stagger: 24ms;
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ground: #0e0e10;
+    --surface: #18181b;
+    --surface-2: #222226;
+    --line: #2a2a2e;
+    --ink: #f4f4f5;
+    --ink-2: #d4d4d8;
+    --muted: #a1a1aa;
+    --accent: #fb923c;
+    --accent-tint: #2a1a10;
+    --accent-ink: #fdba74;
+    --win: #93c5fd;
+    --lose: #fdba74;
+    --even: #a1a1aa;
+    --ok: #4ade80;
+    --warn: #facc15;
+    --urgent: #fca5a5;
+    --button: #f4f4f5;
+    --button-ink: #0e0e10;
+    --raised: #222226;
+    --scrim: rgb(0 0 0 / 0.56);
+
+    /* Dark elevation reads through lighter surfaces and a 1px inner highlight, not heavy shadows. */
+    --shadow-0: 0 0 #0000;
+    --shadow-1: inset 0 1px 0 rgb(255 255 255 / 0.04), 0 1px 2px rgb(0 0 0 / 0.3);
+    --shadow-2: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 4px 16px rgb(0 0 0 / 0.32);
+    --shadow-3: inset 0 1px 0 rgb(255 255 255 / 0.1), 0 16px 48px rgb(0 0 0 / 0.5);
+
+    color-scheme: dark;
+  }
+}
+
+/* The scale (type, radius, easing) as Tailwind utilities: text-title-lg, rounded-card, ease-quick … */
+@theme static {
+  /* The landing hero only (WEB-026); app screens top out at title-lg. */
+  --text-display: 40px;
+  --text-display--line-height: 44px;
+  --text-display--letter-spacing: -0.03em;
+  --text-display--font-weight: 700;
+  --text-title-lg: 28px;
+  --text-title-lg--line-height: 34px;
+  --text-title-lg--letter-spacing: -0.02em;
+  --text-title-lg--font-weight: 700;
+  --text-title: 20px;
+  --text-title--line-height: 26px;
+  --text-title--letter-spacing: -0.01em;
+  --text-title--font-weight: 650;
+  --text-headline: 17px;
+  --text-headline--line-height: 22px;
+  --text-headline--font-weight: 600;
+  --text-body: 15px;
+  --text-body--line-height: 21px;
+  --text-subhead: 13px;
+  --text-subhead--line-height: 18px;
+  --text-caption: 11px;
+  --text-caption--line-height: 14px;
+  --text-caption--letter-spacing: 0.02em;
+  --text-caption--font-weight: 500;
+  --tracking-eyebrow: 0.06em;
+
+  --radius-chip: 8px;
+  --radius-row: 12px;
+  --radius-card: 16px;
+  --radius-sheet: 24px;
+
+  --ease-quick: cubic-bezier(0.2, 0, 0, 1);
+  --ease-base: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-sheet: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-sheet-out: cubic-bezier(0.4, 0, 1, 1);
+
+  /* Tailwind's transition-* utilities use the quick motion token. */
+  --default-transition-duration: var(--motion-quick);
+  --default-transition-timing-function: var(--ease-quick);
+}
+
+@theme inline {
+  --color-ground: var(--ground);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-tint: var(--accent-tint);
+  --color-accent-ink: var(--accent-ink);
+  --color-win: var(--win);
+  --color-lose: var(--lose);
+  --color-even: var(--even);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-urgent: var(--urgent);
+  --color-button: var(--button);
+  --color-button-ink: var(--button-ink);
+  --font-sans: 'Geist Variable', system-ui, sans-serif;
+  --font-mono: 'Geist Mono Variable', ui-monospace, monospace;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    /* A backstop: one stray wide child must never make the page pan sideways (clip keeps sticky working). */
+    overflow-x: clip;
+  }
+  body {
+    overflow-x: clip;
+    /* No double-tap zoom delay on taps. */
+    touch-action: manipulation;
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+    /* Press states give the feedback; no grey tap flash. */
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Every interactive element shows the pointer (§4); disabled shows not-allowed. */
+  button:not(:disabled),
+  [role='button'],
+  a[href],
+  select,
+  summary {
+    cursor: pointer;
+  }
+  :disabled {
+    cursor: not-allowed;
+  }
+
+  /* The focus ring is never removed (§4). */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* Surfaces: a hairline and elevation 1 at rest. */
+  .surface {
+    background-color: var(--surface);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-1);
+  }
+
+  /* The material (tab bar, sticky headers, sheets): opaque where backdrop-filter is unsupported. */
+  .material {
+    background: var(--surface);
+  }
+
+  .hairline-t {
+    border-top: 1px solid var(--line);
+  }
+
+  /* Status badge fills: opaque mixes, same look as the old 8–12 % tints over a surface. */
+  .badge-win {
+    background-color: color-mix(in srgb, var(--win) 12%, var(--surface));
+  }
+  .badge-lose {
+    background-color: color-mix(in srgb, var(--lose) 8%, var(--surface));
+  }
+  .badge-warn {
+    background-color: color-mix(in srgb, var(--warn) 12%, var(--surface));
+  }
+
+  .hairline-r {
+    border-right: 1px solid var(--line);
+  }
+
+  .lift,
+  .press,
+  .press-strong {
+    transition:
+      transform var(--motion-quick) var(--ease-quick),
+      box-shadow var(--motion-quick) var(--ease-quick),
+      background-color var(--motion-quick) var(--ease-quick),
+      filter var(--motion-quick) var(--ease-quick);
+  }
+
+  /* The pointer light: a soft spotlight at --x/--y (set by usePointerLight) and a border highlight. */
+  .light {
+    position: relative;
+    isolation: isolate;
+  }
+  .light::before,
+  .light::after {
+    content: '';
+    position: absolute;
+    pointer-events: none;
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity var(--motion-quick) var(--ease-quick);
+  }
+  .light::before {
+    inset: 0;
+    z-index: -1;
+    background: radial-gradient(
+      240px circle at var(--x, 50%) var(--y, 50%),
+      color-mix(in oklab, var(--accent) 10%, transparent),
+      transparent 70%
+    );
+  }
+  .light::after {
+    inset: -1px;
+    padding: 1px;
+    background: radial-gradient(
+      240px circle at var(--x, 50%) var(--y, 50%),
+      color-mix(in oklab, var(--accent) 45%, transparent),
+      transparent 70%
+    );
+    mask:
+      linear-gradient(#000 0 0) content-box exclude,
+      linear-gradient(#000 0 0);
+  }
+
+  .btn-primary {
+    background-color: var(--button);
+    color: var(--button-ink);
+    border: 1px solid transparent;
+  }
+  .btn-secondary,
+  .chip {
+    background-color: var(--surface);
+    color: var(--ink);
+    border: 1px solid var(--line);
+  }
+  .chip[aria-pressed='true'] {
+    background-color: var(--button);
+    color: var(--button-ink);
+    border-color: var(--button);
+  }
+
+  .skeleton {
+    position: relative;
+    overflow: hidden;
+    background: var(--surface-2);
+  }
+  .skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in oklab, var(--surface) 70%, transparent),
+      transparent
+    );
+    animation: shimmer var(--motion-shimmer) linear infinite;
+  }
+
+  /* Lists stagger in: 24 ms per item, capped at 8 (the rest arrive together). */
+  .stagger > * {
+    animation: rise var(--motion-base) var(--ease-base) backwards;
+  }
+  .stagger > :nth-child(2) {
+    animation-delay: calc(var(--stagger) * 1);
+  }
+  .stagger > :nth-child(3) {
+    animation-delay: calc(var(--stagger) * 2);
+  }
+  .stagger > :nth-child(4) {
+    animation-delay: calc(var(--stagger) * 3);
+  }
+  .stagger > :nth-child(5) {
+    animation-delay: calc(var(--stagger) * 4);
+  }
+  .stagger > :nth-child(6) {
+    animation-delay: calc(var(--stagger) * 5);
+  }
+  .stagger > :nth-child(7) {
+    animation-delay: calc(var(--stagger) * 6);
+  }
+  .stagger > :nth-child(8) {
+    animation-delay: calc(var(--stagger) * 7);
+  }
+  .stagger > :nth-child(n + 9) {
+    animation-delay: calc(var(--stagger) * 8);
+  }
+
+  /* Expanded content reveals in place. */
+  .reveal {
+    animation: rise var(--motion-base) var(--ease-base) backwards;
+  }
+
+  /* Draft room feel (DRAFT-020): transform and opacity only; the room skips these classes when motion is reduced. */
+  .lot-in {
+    animation: lot-in var(--motion-base) var(--ease-base) backwards;
+  }
+  .price-pop {
+    animation: price-pop var(--motion-base) var(--ease-base);
+  }
+  .bidder-flash {
+    animation: bidder-flash 600ms ease-out;
+  }
+  .sold-stamp {
+    animation: stamp var(--motion-base) var(--ease-base) backwards;
+  }
+  .ring-pulse {
+    animation: ring-pulse 1000ms ease-in-out infinite;
+  }
+  .bar-grow {
+    transform-origin: left;
+    animation: bar-grow 500ms var(--ease-base) backwards;
+  }
+
+  /* Sheets rise from the bottom on phones, scale + fade on wider screens; out is faster, ease-in. */
+  .sheet-backdrop {
+    background: var(--scrim);
+    animation: fade-in var(--motion-sheet) var(--ease-sheet) backwards;
+  }
+  .sheet-backdrop[data-state='closed'] {
+    animation: fade-out var(--motion-sheet-out) var(--ease-sheet-out) forwards;
+  }
+  .sheet-panel {
+    box-shadow: var(--shadow-3);
+    animation: sheet-rise var(--motion-sheet) var(--ease-sheet) backwards;
+    transition: transform var(--motion-sheet) var(--ease-sheet);
+  }
+  .sheet-panel[data-dragging] {
+    transition: none;
+  }
+  .sheet-panel[data-state='closed'] {
+    animation: sheet-sink var(--motion-sheet-out) var(--ease-sheet-out) forwards;
+  }
+  @media (min-width: 640px) {
+    .sheet-panel {
+      animation-name: sheet-pop;
+    }
+    .sheet-panel[data-state='closed'] {
+      animation-name: sheet-unpop;
+    }
+  }
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .material {
+    background: color-mix(in oklab, var(--surface) 90%, transparent);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+  }
+  /* A sheet sits over the scrim, which greys a translucent material: small tinted text (the lose
+     badge) fell to 3.9:1 (axe, WEB-008). The scrim already sets the sheet apart, so it is opaque
+     and its text reads exactly as it does on the page's surfaces (≥ 4.5:1). */
+  .sheet-panel.material {
+    background: var(--surface);
+  }
+}
+
+@media (min-resolution: 2dppx) {
+  .hairline-t {
+    border-top-width: 0.5px;
+  }
+
+  .hairline-r {
+    border-right-width: 0.5px;
+  }
+}
+
+/* Hover exists only for fine pointers: no sticky hover after a tap, nothing on touch. */
+@media (hover: hover) and (pointer: fine) {
+  .lift:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-2);
+    background-color: var(--raised);
+  }
+  .light:hover::before,
+  .light:hover::after {
+    opacity: 1;
+  }
+  .btn-primary:hover {
+    filter: brightness(1.04);
+  }
+  .btn-secondary:hover,
+  .chip[aria-pressed='false']:hover {
+    background-color: var(--surface-2);
+  }
+}
+
+/* Press: rows and cards 0.98, buttons and chips 0.96; touch gets this too. */
+.press:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.press-strong:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+@keyframes sheet-rise {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes sheet-sink {
+  to {
+    transform: translateY(100%);
+  }
+}
+@keyframes sheet-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+@keyframes sheet-unpop {
+  to {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+@keyframes lot-in {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+}
+@keyframes price-pop {
+  40% {
+    transform: scale(1.12);
+  }
+}
+@keyframes bidder-flash {
+  from {
+    opacity: 0.25;
+  }
+}
+@keyframes stamp {
+  from {
+    opacity: 0;
+    transform: scale(1.4) rotate(-4deg);
+  }
+}
+@keyframes ring-pulse {
+  50% {
+    transform: scale(1.07);
+  }
+}
+@keyframes bar-grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+/* Reduced motion: transforms become short fades; no stagger, no shimmer. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-base: 120ms;
+    --motion-sheet: 120ms;
+    --motion-sheet-out: 120ms;
+    --stagger: 0ms;
+  }
+  .lift,
+  .press,
+  .press-strong,
+  .reveal,
+  .sheet-panel,
+  .stagger > * {
+    transform: none !important;
+  }
+  .stagger > *,
+  .reveal,
+  .sheet-panel {
+    animation-name: fade-in;
+    animation-duration: var(--motion-quick);
+    animation-delay: 0ms !important;
+  }
+  .sheet-panel[data-state='closed'] {
+    animation-name: fade-out;
+  }
+  .lot-in,
+  .price-pop,
+  .bidder-flash,
+  .sold-stamp,
+  .ring-pulse,
+  .bar-grow {
+    animation: none !important;
+  }
+  .skeleton::after {
+    animation: none;
+  }
+}
+
+/* Phones: iOS Safari zooms the page when a control under 16 px takes focus and leaves it zoomed, so the
+   page looks wider than the device. Unlayered so it beats the text-size utilities. */
+@media (pointer: coarse) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+.tab-item:active:not(:disabled) {
+  opacity: 0.6;
+}

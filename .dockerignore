@@ -1,0 +1,18 @@
+# Only the Python workspace goes into the image build context.
+**/.venv
+**/__pycache__
+**/*.pyc
+**/node_modules
+.git
+.github
+.claude
+.env*
+secrets
+data
+docs
+paper
+warehouse
+infra
+apps/web
+tools
+**/tests

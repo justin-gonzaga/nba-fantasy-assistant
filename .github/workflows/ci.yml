@@ -1,0 +1,379 @@
+# CI for every PR and push to main (FND-006; devops standard §2). Mirrors `just ci-local`.
+# dbt runs on PRs only, in per-PR ci_pr<N>_* datasets in dev (FND-017).
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  UV_FROZEN: "1"
+
+jobs:
+  lint-type:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          enable-cache: true
+      - run: uv sync
+      - name: ruff format
+        run: uv run ruff format --check .
+      - name: ruff lint
+        run: uv run ruff check .
+      - name: mypy
+        run: uv run mypy
+      - name: import layering
+        run: uv run lint-imports
+
+  test-py:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          enable-cache: true
+      - run: uv sync
+      - name: Firestore emulator for the UserStore contract tests (APP-008)
+        run: |
+          docker run -d --name firestore -p 8681:8681 \
+            gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators@sha256:8d8573471c489a409f03891d2c24d177fa531276184f7002b9a2d853d1b3ed54 \
+            gcloud emulators firestore start --host-port=0.0.0.0:8681
+          for i in $(seq 1 90); do curl -sf http://127.0.0.1:8681/ && exit 0; sleep 2; done
+          docker logs firestore; exit 1
+      - name: pytest + coverage gate (offline; node is preinstalled for the JS parity tests)
+        env:
+          FIRESTORE_EMULATOR_HOST: 127.0.0.1:8681
+          REQUIRE_FIRESTORE_EMULATOR: "1" # in CI a missing emulator fails instead of skipping
+        run: uv run pytest -q -m "not integration" --cov --cov-report=term
+
+  docs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+      - name: task files follow the task spec standard
+        run: uv run --no-project python tools/tasks.py validate
+      - name: every file belongs to a layer (platform-manifest.yaml)
+        run: uv run --no-project python tools/manifest_check.py
+
+  security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          enable-cache: true
+      - run: uv sync
+      - name: gitleaks (same config as the pre-commit hook)
+        run: uv run pre-commit run gitleaks --all-files
+      - name: pip-audit on the locked dependencies
+        run: |
+          uv export --no-hashes --format requirements-txt --all-groups --no-emit-workspace > /tmp/req.txt
+          uvx pip-audit --strict -r /tmp/req.txt
+
+  terraform:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
+      - name: fmt
+        run: terraform fmt -check -recursive infra/terraform
+      - name: policy tests (mock provider; no cloud access)
+        run: |
+          terraform -chdir=infra/terraform/modules/env init -backend=false -input=false
+          terraform -chdir=infra/terraform/modules/env test
+
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm format
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - name: generated API types match the committed contract (APP-003)
+        run: |
+          pnpm api:types
+          git diff --exit-code src/api/schema.gen.ts
+      - name: build + initial JS budget (< 200 kB gzipped, frontend standard)
+        run: |
+          pnpm build
+          size=$(cat dist/assets/*.js | gzip -c | wc -c)
+          echo "initial JS gzipped: $size bytes"
+          test "$size" -lt 204800
+      - name: the e2e auth seam is tree-shaken out of the build (WEB-008)
+        run: node scripts/check-no-e2e.mjs dist
+
+  # Persona e2e (WEB-008): Playwright on iPhone 13 (WebKit), Pixel 7 and desktop Chromium against
+  # `vite preview` of the demo and e2e-live builds, the API mocked at the network layer, plus axe.
+  # Runs when apps/web (or this file) changed; the HTML report and failure screenshots upload on failure.
+  web-e2e:
+    needs: web
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: did apps/web change?
+        id: changed
+        working-directory: .
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ] ||
+             git diff --name-only "$BASE" HEAD | grep -qE '^(apps/web/|\.github/workflows/ci\.yml$)'; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "apps/web unchanged: e2e skipped"
+          fi
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        if: steps.changed.outputs.run == 'true'
+        with:
+          node-version: 22
+      - if: steps.changed.outputs.run == 'true'
+        run: corepack enable
+      - if: steps.changed.outputs.run == 'true'
+        run: pnpm install --frozen-lockfile
+      - name: Playwright version (the browser cache key)
+        if: steps.changed.outputs.run == 'true'
+        id: pw
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        if: steps.changed.outputs.run == 'true'
+        id: browsers
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
+      - name: install browsers
+        if: steps.changed.outputs.run == 'true' && steps.browsers.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install --with-deps chromium webkit
+      - name: browser system libraries (a cache hit restores only the browsers)
+        if: steps.changed.outputs.run == 'true' && steps.browsers.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium webkit
+      - name: personas × iPhone 13, Pixel 7, desktop
+        if: steps.changed.outputs.run == 'true'
+        run: pnpm exec playwright test
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            apps/web/playwright-report
+            apps/web/test-results
+          retention-days: 14
+
+  # The container image (FND-015): built, started and scanned here, so no local Docker is needed.
+  image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: build
+        run: docker build -t fantasy:ci .
+      - name: size under 1 GB (polars, scipy and pyarrow dominate)
+        run: |
+          size=$(docker image inspect fantasy:ci --format '{{.Size}}')
+          echo "image bytes: $size"
+          test "$size" -lt 1073741824
+      - name: the api entrypoint serves /system/health as a non-root user
+        run: |
+          docker run -d --name api -p 8080:8080 -e DATA_ROOT=/tmp/data \
+            -e ALLOWED_EMAILS=ci@example.test -e FIREBASE_PROJECT=ci-test fantasy:ci
+          test "$(docker exec api id -u)" != "0"
+          docker exec api sh -c 'mkdir -p data/ops && touch data/ops/run.lock'  # the job's lock path is writable
+          for i in $(seq 1 30); do
+            if curl -fsS localhost:8080/system/health; then exit 0; fi
+            sleep 1
+          done
+          docker logs api
+          exit 1
+      - name: without an allowlist the api refuses to start (fails closed, APP-005)
+        run: |
+          if docker run --rm -e DATA_ROOT=/tmp/data fantasy:ci; then
+            echo "the api started without ALLOWED_EMAILS"; exit 1
+          fi
+      - name: the job entrypoint reaches the pipeline CLI
+        run: docker run --rm fantasy:ci job --help
+      - name: where Python packages live (evidence for the scan)
+        run: >
+          docker run --rm --entrypoint sh fantasy:ci -c
+          'find / -name "*.dist-info" -path "*setuptools*" -o -name "*.dist-info" -path "*msgpack*" 2>/dev/null || true'
+      - name: Trivy (fails on fixable HIGH/CRITICAL)
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:0.65.0             image --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed --no-progress fantasy:ci
+
+  # The API on Cloud Run (INFRA-004): on merge to main, push the image and deploy it by digest.
+  # Off until the owner's terraform apply creates the registry and service; then set the repo
+  # variable CLOUD_RUN_ENABLED=true. The service stays private until sign-in exists (APP-005).
+  deploy-api:
+    if: vars.CLOUD_RUN_ENABLED == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: image
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      PROJECT: nbafa-hdfo-dev
+      REGION: australia-southeast1
+      IMAGE: australia-southeast1-docker.pkg.dev/nbafa-hdfo-dev/images/fantasy
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: deploy@nbafa-hdfo-dev.iam.gserviceaccount.com
+      - name: build the image
+        run: docker build -t "$IMAGE:$GITHUB_SHA" .
+      - name: scan the exact image that ships (fixable HIGH/CRITICAL fail)
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:0.65.0             image --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed --no-progress "$IMAGE:$GITHUB_SHA"
+      - name: push the scanned image
+        run: |
+          gcloud auth configure-docker "$REGION-docker.pkg.dev" --quiet
+          docker push "$IMAGE:$GITHUB_SHA"
+          echo "DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "$IMAGE:$GITHUB_SHA")" >> "$GITHUB_ENV"
+      - name: deploy the api by digest
+        run: gcloud run deploy api --image "$DIGEST" --region "$REGION" --project "$PROJECT" --quiet
+      - name: the daily job runs the same image (INFRA-008), once Terraform has created it
+        run: |
+          if gcloud run jobs describe daily --region "$REGION" --project "$PROJECT" >/dev/null 2>&1; then
+            # GCP_PROJECT matches Terraform's daily.tf (DATA-035), so a later apply sees no drift
+            gcloud run jobs update daily --image "$DIGEST" --update-env-vars "GCP_PROJECT=$PROJECT" --region "$REGION" --project "$PROJECT" --quiet
+          else
+            echo "no daily job yet (owner apply pending)"
+          fi
+      - name: the watchdog runs the same image (INFRA-005), once Terraform has created it
+        run: |
+          if gcloud run jobs describe watchdog --region "$REGION" --project "$PROJECT" >/dev/null 2>&1; then
+            gcloud run jobs update watchdog --image "$DIGEST" --region "$REGION" --project "$PROJECT" --quiet
+          else
+            echo "no watchdog job yet (owner apply pending)"
+          fi
+
+  # Website (D-59, WEB-012): a preview channel per PR; the dev site on merge to main.
+  # Off until Firebase is enabled in dev (owner `terraform apply`), then set the repo variable
+  # FIREBASE_ENABLED=true. Prod deploys come from CalVer tags (a release workflow, later).
+  hosting:
+    # After the API (WEB-016 AC7): the site must never be live ahead of the API it calls. deploy-api is skipped on PRs.
+    if: >-
+      always() && vars.FIREBASE_ENABLED == 'true' && needs.web.result == 'success' &&
+      (needs.deploy-api.result == 'success' || github.event_name == 'pull_request' ||
+       vars.CLOUD_RUN_ENABLED != 'true')
+    needs: [web, deploy-api]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: write
+    defaults:
+      run:
+        working-directory: apps/web
+    env:
+      PROJECT: nbafa-hdfo-dev
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: deploy@nbafa-hdfo-dev.iam.gserviceaccount.com
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      # Live mode needs all five public build variables (terraform output web_build_env, WEB-013);
+      # while any is unset the site builds in demo mode (sample data, no sign-in).
+      - run: pnpm build
+        env:
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
+          VITE_FIREBASE_API_KEY: ${{ vars.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ vars.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ vars.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_APP_ID: ${{ vars.VITE_FIREBASE_APP_ID }}
+      - name: preview channel for this PR
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          npx --yes firebase-tools@15.31.0 hosting:channel:deploy "pr-$PR" --project "$PROJECT" --expires 7d --json > deploy.json
+          url=$(jq -r '.result[].url' deploy.json | head -1)
+          gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --body "Preview (7 days, sample data): $url" || true
+      - name: deploy the dev site
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: npx --yes firebase-tools@15.31.0 deploy --only hosting --project "$PROJECT" --non-interactive
+
+  # dbt build (models + tests + seeds) against dev raw, into per-PR datasets labelled ci=true.
+  # Dropped at the end; ci-dataset-cleanup.yml removes anything left behind.
+  dbt:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      DBT_TARGET: ci
+      CI_PR_NUMBER: ${{ github.event.pull_request.number }}
+      PROJECT: nbafa-hdfo-dev
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          enable-cache: true
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: deploy@nbafa-hdfo-dev.iam.gserviceaccount.com
+      - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+      - name: per-PR datasets (labelled for the cleanup job)
+        run: |
+          for layer in staging intermediate marts; do
+            bq mk -f --dataset --label ci:true --location australia-southeast1 "$PROJECT:ci_pr${CI_PR_NUMBER}_${layer}"
+          done
+      - run: uv sync --group warehouse
+      - name: dbt deps + build
+        run: |
+          uv run --group warehouse dbt deps --project-dir warehouse --profiles-dir warehouse
+          uv run --group warehouse dbt build --project-dir warehouse --profiles-dir warehouse
+      - name: drop per-PR datasets
+        if: always()
+        run: |
+          for layer in staging intermediate marts; do
+            bq rm -r -f -d "$PROJECT:ci_pr${CI_PR_NUMBER}_${layer}" || true
+          done

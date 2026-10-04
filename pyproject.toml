@@ -1,0 +1,149 @@
+[project]
+name = "nba-fantasy-assistant"
+version = "0.1.0"
+description = "Personal Yahoo NBA fantasy decision-support system (workspace root)"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "dikit",
+    "fantasy-core",
+    "fantasy-ingest",
+    "fantasy-features",
+    "fantasy-models",
+    "fantasy-decision",
+    "fantasy-evaluation",
+    "fantasy-pipeline",
+    "fantasy-api",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-cov>=6.0",
+    "hypothesis>=6.120",
+    "ruff>=0.13",
+    "mypy>=1.18",
+    "import-linter>=2.1",
+    "pre-commit>=4.0",
+    "scipy-stubs>=1.18.1.1",
+]
+warehouse = [
+    "dbt-bigquery>=1.10",
+    "dbt-core>=1.10",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["packages/*", "apps/*"]
+exclude = ["apps/web"]  # the TypeScript SPA (pnpm)
+
+[tool.uv.sources]
+dikit = { workspace = true }
+fantasy-core = { workspace = true }
+fantasy-ingest = { workspace = true }
+fantasy-features = { workspace = true }
+fantasy-models = { workspace = true }
+fantasy-decision = { workspace = true }
+fantasy-evaluation = { workspace = true }
+fantasy-pipeline = { workspace = true }
+fantasy-api = { workspace = true }
+
+# ---------------------------------------------------------------- ruff (S-04 A)
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+extend-exclude = ["paper", "docs"]
+src = ["packages/*/src", "apps/*/src", "."]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "C4", "C90", "N", "S", "PT", "RUF", "DTZ", "TID", "PL"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "parents"
+
+[tool.ruff.lint.per-file-ignores]
+# Tests may call known local tools (node --check) and use seeded pseudo-random data.
+"**/tests/**" = ["S101", "S105", "S106", "PLR2004", "S603", "S311"]
+# Names fixed by the software-engineering standard (SourceUnavailable, ContractViolation)
+"packages/dikit/src/dikit/errors.py" = ["N818"]
+# Stdlib-only harness scripts: subprocess calls to known tools, CLI dispatch, and user-facing text.
+"tools/**" = ["S603", "S607", "PLR0911", "PLR0912", "PLR2004", "C901", "RUF001"]
+
+# ---------------------------------------------------------------- mypy (S-03 A)
+[tool.mypy]
+python_version = "3.13"
+strict = true
+files = ["packages", "apps", "tools"]
+explicit_package_bases = true
+mypy_path = "packages/dikit/src,packages/core/src,packages/ingest/src,packages/features/src,packages/models/src,packages/decision/src,packages/evaluation/src,apps/pipeline/src,apps/api/src"
+warn_unreachable = true
+
+[[tool.mypy.overrides]]
+# fsspec ships no type information; its use is confined to dikit.store.snapshot.
+module = ["fsspec", "fsspec.*"]
+ignore_missing_imports = true
+
+# ---------------------------------------------------------------- pytest / coverage (S-05 A)
+[tool.pytest.ini_options]
+addopts = "--import-mode=importlib -ra"
+testpaths = ["packages", "apps", "tools"]
+markers = ["integration: needs external services (BigQuery, network)"]
+
+[tool.coverage.run]
+source = ["packages", "apps"]
+branch = true
+
+[tool.coverage.report]
+fail_under = 85
+show_missing = true
+skip_covered = true
+
+# ---------------------------------------------------------------- import-linter (architecture §3)
+[tool.importlinter]
+root_packages = [
+    "dikit", "fantasy_core", "fantasy_ingest", "fantasy_features", "fantasy_models",
+    "fantasy_decision", "fantasy_evaluation", "fantasy_pipeline", "fantasy_api",
+]
+
+[[tool.importlinter.contracts]]
+name = "The dikit kernel never imports domain code (D-58, D-60)"
+type = "forbidden"
+source_modules = ["dikit"]
+forbidden_modules = [
+    "fantasy_core", "fantasy_ingest", "fantasy_features", "fantasy_models",
+    "fantasy_decision", "fantasy_evaluation", "fantasy_pipeline", "fantasy_api",
+]
+
+[[tool.importlinter.contracts]]
+name = "Analytical layering: apps > evaluation > decision > models > features > core"
+type = "layers"
+layers = [
+    "fantasy_pipeline | fantasy_api",
+    "fantasy_evaluation",
+    "fantasy_decision",
+    "fantasy_models",
+    "fantasy_features",
+    "fantasy_core",
+]
+
+[[tool.importlinter.contracts]]
+name = "Ingest depends only on core (never on analytics or apps)"
+type = "forbidden"
+source_modules = ["fantasy_ingest"]
+forbidden_modules = [
+    "fantasy_features", "fantasy_models", "fantasy_decision",
+    "fantasy_evaluation", "fantasy_pipeline",
+]
+
+[[tool.importlinter.contracts]]
+name = "Core and analytics never import ingest (they read the warehouse, not sources)"
+type = "forbidden"
+source_modules = [
+    "fantasy_core", "fantasy_features", "fantasy_models",
+    "fantasy_decision", "fantasy_evaluation",
+]
+forbidden_modules = ["fantasy_ingest"]

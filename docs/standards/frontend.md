@@ -1,0 +1,41 @@
+# Frontend Standard (`apps/web`)
+
+Status: **Accepted** (owner selections recorded in `docs/project/standards-decisions.md`, 2026-09-24).
+
+- **Stack**:
+  - React 19 + Vite + TypeScript (strict)
+  - TanStack Query for server state
+  - React Router
+  - Tailwind CSS + a small in-repo component library (shadcn/ui-style, copied rather than depended on)
+  - Recharts for charts
+  - pnpm
+- **Design language**: `docs/standards/design-language.md` ("Courtside") is binding for every UI change: philosophy, tokens, motion, hover/press/cursor behaviour, components and the PR checklist (§7).
+- **Mobile-first**: design at 375 px width first. Every page must be usable one-handed on a phone.
+- **Owner UI/UX selections (U1–U8)**:
+  - Telegram is the primary surface, and the dashboard is for deep dives.
+  - Home is "Today: actions first".
+  - Recommendations are **action cards** with an expandable "why".
+  - Stats are **simple by default, with drill-down**.
+  - The theme **follows the phone setting**.
+  - A **clickable prototype** is approved (WEB-000) before any real frontend work.
+  - There is a chat panel for NL questions (D-36), and a public demo mode (D-38).
+- **Auth**: Firebase Auth (Google sign-in). The ID token is sent to the API, and it is never stored in localStorage.
+- **Architecture**:
+  - `src/api/`: the generated client + query hooks. The only place that talks to the network.
+  - `src/features/<area>/`: a page + components per decision area (today, matchup, waivers, players, trades, system).
+  - `src/components/ui/`: presentational primitives, with no data fetching.
+  - State: server state lives in TanStack Query. Local UI state uses `useState`/`useReducer`. There is no global store unless an ADR justifies one.
+- **Decision-first UI**: each page leads with the recommendation and its confidence, then the "why" (evidence), then details. No raw model output is shown without context.
+- **Freshness is always visible**: every page shows the `as_of` time and a staleness badge.
+- **Error handling**: every query has loading, empty, and error states. Error boundaries apply per feature.
+- **Accessibility**:
+  - WCAG 2.2 AA
+  - semantic HTML
+  - keyboard-navigable
+  - colour is never the only signal (category win/loss uses icon + text)
+  - `eslint-plugin-jsx-a11y`; axe checks in Playwright
+- **Performance**: route-level code splitting; initial JS < 200 kB gzipped; Lighthouse mobile performance ≥ 90 on key pages.
+- **Testing**:
+  - Vitest + Testing Library for components and hooks (with MSW mocks generated from OpenAPI examples)
+  - Playwright e2e for the top 3 flows (today's lineup, waiver review, trade evaluation), run against the fixture API
+- **Lint/format**: ESLint (typescript-eslint strict) + Prettier; `tsc --noEmit` in CI.

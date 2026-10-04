@@ -1,0 +1,110 @@
+[
+ {
+  "GameDate": "01/20/2026",
+  "GameTime": "07:00 (ET)",
+  "Matchup": "PHX@PHI",
+  "Team": "Phoenix Suns",
+  "PlayerName": "Goodwin, Jordan",
+  "CurrentStatus": "Available",
+  "Reason": "Injury/Illness - Jaw; Sprain (Mask)"
+ },
+ {
+  "GameDate": "01/20/2026",
+  "GameTime": "07:00 (ET)",
+  "Matchup": "PHX@PHI",
+  "Team": "Phoenix Suns",
+  "PlayerName": "Williams, Mark",
+  "CurrentStatus": "Questionable",
+  "Reason": "Injury/Illness - Right Knee; Injury Management"
+ },
+ {
+  "GameDate": "01/20/2026",
+  "GameTime": "07:00 (ET)",
+  "Matchup": "PHX@PHI",
+  "Team": "Philadelphia 76ers",
+  "PlayerName": "Beauchamp, MarJon",
+  "CurrentStatus": "Out",
+  "Reason": "G League - Two-Way"
+ },
+ {
+  "GameDate": "01/20/2026",
+  "GameTime": "07:00 (ET)",
+  "Matchup": "PHX@PHI",
+  "Team": "Philadelphia 76ers",
+  "PlayerName": "Broome, Johni",
+  "CurrentStatus": "Doubtful",
+  "Reason": "Injury/Illness - Left Thumb; Sprain"
+ },
+ {
+  "GameDate": "01/20/2026",
+  "GameTime": "07:00 (ET)",
+  "Matchup": "PHX@PHI",
+  "Team": "Philadelphia 76ers",
+  "PlayerName": "Embiid, Joel",
+  "CurrentStatus": "Out",
+  "Reason": "Injury/Illness - Right Ankle; Injury Management"
+ },
+ {
+  "GameDate": "01/20/2026",
+  "GameTime": "07:00 (ET)",
+  "Matchup": "PHX@PHI",
+  "Team": "Philadelphia 76ers",
+  "PlayerName": "George, Paul",
+  "CurrentStatus": "Questionable",
+  "Reason": "Injury/Illness - Left Knee; Injury Management"
+ },
+ {
+  "GameDate": "01/20/2026",
+  "GameTime": "07:00 (ET)",
+  "Matchup": "PHX@PHI",
+  "Team": "Philadelphia 76ers",
+  "PlayerName": "Oubre Jr., Kelly",
+  "CurrentStatus": "Available",
+  "Reason": "Injury/Illness - Left Knee; Injury Recovery - Brace"
+ },
+ {
+  "GameDate": "01/20/2026",
+  "GameTime": "08:00 (ET)",
+  "Matchup": "LAC@CHI",
+  "Team": "LA Clippers",
+  "PlayerName": "Beal, Bradley",
+  "CurrentStatus": "Out",
+  "Reason": "Injury/Illness - Left Hip; Fracture"
+ },
+ {
+  "GameDate": "01/20/2026",
+  "GameTime": "08:00 (ET)",
+  "Matchup": "LAC@CHI",
+  "Team": "LA Clippers",
+  "PlayerName": "Bogdanovic, Bogdan",
+  "CurrentStatus": "Out",
+  "Reason": "Injury/Illness - Left Hamstring; Injury Management"
+ },
+ {
+  "GameDate": "01/20/2026",
+  "GameTime": "08:00 (ET)",
+  "Matchup": "LAC@CHI",
+  "Team": "LA Clippers",
+  "PlayerName": "Christie, Cam",
+  "CurrentStatus": "Questionable",
+  "Reason": "Injury/Illness - Abdominal; Soreness"
+ },
+ {
+  "GameDate": "01/20/2026",
+  "GameTime": "08:00 (ET)",
+  "Matchup": "LAC@CHI",
+  "Team": "LA Clippers",
+  "PlayerName": "Jones Jr., Derrick",
+  "CurrentStatus": "Out",
+  "Reason": "Injury/Illness - Right Knee; Sprain"
+ },
+ {
+  "GameDate": "01/20/2026",
+  "GameTime": "08:00 (ET)",
+  "Matchup": "LAC@CHI",
+  "Team": "LA Clippers",
+  "PlayerName": "Leonard, Kawhi",
+  "CurrentStatus": "Out",
+  "Reason": "Injury/Illness - Left Knee; Contusion"
+ }
+]

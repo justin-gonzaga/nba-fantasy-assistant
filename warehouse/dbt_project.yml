@@ -1,0 +1,33 @@
+name: nba_fantasy
+version: "0.1.0"
+config-version: 2
+profile: nba_fantasy
+
+model-paths: ["models"]
+macro-paths: ["macros"]
+test-paths: ["tests"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+
+models:
+  nba_fantasy:
+    +persist_docs:
+      relation: true
+      columns: true
+    staging:
+      +schema: staging
+      +materialized: view
+    intermediate:
+      +schema: intermediate
+      +materialized: table
+    marts:
+      +schema: marts
+      +materialized: table
+
+seeds:
+  nba_fantasy:
+    +schema: staging
+
+data_tests:
+  +severity: error

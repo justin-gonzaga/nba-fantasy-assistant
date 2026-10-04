@@ -1,0 +1,31 @@
+# No secrets here: auth is the caller's Google credentials (gcloud ADC locally, the job's
+# service account on Cloud Run, WIF in CI).
+nba_fantasy:
+  target: "{{ env_var('DBT_TARGET', 'dev') }}"
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth
+      project: "{{ env_var('DBT_GCP_PROJECT', 'nbafa-hdfo-dev') }}"
+      dataset: staging
+      location: australia-southeast1
+      threads: 4
+      job_execution_timeout_seconds: 600
+      priority: interactive
+    ci:
+      type: bigquery
+      method: oauth
+      project: nbafa-hdfo-dev
+      # Per-PR prefix; generate_schema_name appends the layer: ci_pr12_staging (INFRA-002 pattern)
+      dataset: "ci_pr{{ env_var('CI_PR_NUMBER', '0') }}"
+      location: australia-southeast1
+      threads: 4
+      job_execution_timeout_seconds: 600
+    prod:
+      type: bigquery
+      method: oauth
+      project: nbafa-hdfo-prod
+      dataset: staging
+      location: australia-southeast1
+      threads: 4
+      job_execution_timeout_seconds: 900

@@ -1,0 +1,7 @@
+# Copy to owner.auto.tfvars (git-ignored) and fill in your own values.
+api_allowed_emails = "you@example.com"
+
+# INFRA-008: the cloud daily brief. The chat id is in data/telegram_chat.json on the PC
+# ({"chat_id": 123456789}); set the schedule to true at the switch-over (docs/runbooks/daily-brief.md).
+telegram_chat_id       = "123456789"
+daily_schedule_enabled = false

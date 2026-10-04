@@ -1,0 +1,35 @@
+[project]
+name = "fantasy-pipeline"
+version = "0.1.0"
+description = "Typer CLI"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "fantasy-core",
+    "fantasy-ingest",
+    "fantasy-features",
+    "fantasy-models",
+    "fantasy-decision",
+    "fantasy-evaluation",
+    "typer>=0.27.2",
+    "google-cloud-bigquery>=3.45.2",
+    "pyarrow>=25.0.1",
+    "polars>=1.44.2",
+]
+
+[tool.uv.sources]
+fantasy-core = { workspace = true }
+fantasy-features = { workspace = true }
+fantasy-models = { workspace = true }
+fantasy-decision = { workspace = true }
+fantasy-evaluation = { workspace = true }
+fantasy-ingest = { workspace = true }
+
+[build-system]
+requires = ["uv_build>=0.12,<0.13"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "fantasy_pipeline"
+
+[project.scripts]
+fantasy = "fantasy_pipeline.cli:app"

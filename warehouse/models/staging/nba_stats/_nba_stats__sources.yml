@@ -1,0 +1,103 @@
+version: 2
+
+sources:
+  - name: nba_stats
+    description: >
+      stats.nba.com payloads captured by fantasy_ingest (home IP), stored as immutable
+      snapshots in GCS: raw/nba_stats/<endpoint>/<key>/<observed_at>.json (+ .meta.json sidecars).
+      Each file is one line of JSON, read as a single STRING column `payload`.
+    schema: raw
+    loader: fantasy_ingest.draft_pool
+    config:
+      loaded_at_field: >-
+        parse_timestamp('%Y%m%dT%H%M%S', regexp_extract(_FILE_NAME, r'/(\d{8}T\d{6})\d{6}Z\.json$'))
+      freshness:
+        warn_after: {count: 45, period: day}
+        error_after: {count: 90, period: day}
+    tables:
+      - name: nba_stats__leaguegamelog
+        description: Player (P) and team (T) game logs per regular season
+        external:
+          location: "gs://{{ env_var('DBT_RAW_BUCKET', 'nbafa-hdfo-dev-raw') }}/raw/nba_stats/leaguegamelog/*"
+          options:
+            format: CSV
+            field_delimiter: "	"
+            quote: ""
+            max_bad_records: 0
+        columns:
+          - name: payload
+            data_type: STRING
+            description: The whole JSON file (payload or .meta.json sidecar)
+      - name: nba_stats__leaguedashplayerstats
+        description: Season totals per player (includes AGE)
+        external:
+          location: "gs://{{ env_var('DBT_RAW_BUCKET', 'nbafa-hdfo-dev-raw') }}/raw/nba_stats/leaguedashplayerstats/*"
+          options:
+            format: CSV
+            field_delimiter: "	"
+            quote: ""
+            max_bad_records: 0
+        columns:
+          - name: payload
+            data_type: STRING
+            description: The whole JSON file (payload or .meta.json sidecar)
+      - name: nba_stats__commonteamroster
+        description: Roster and coaching staff per team and season (players; Coaches = resultSets[1], DATA-038)
+        config:
+          freshness:
+            warn_after: {count: 7, period: day}
+            error_after: {count: 21, period: day}
+        external:
+          location: "gs://{{ env_var('DBT_RAW_BUCKET', 'nbafa-hdfo-dev-raw') }}/raw/nba_stats/commonteamroster/*"
+          options:
+            format: CSV
+            field_delimiter: "	"
+            quote: ""
+            max_bad_records: 0
+        columns:
+          - name: payload
+            data_type: STRING
+            description: The whole JSON file (payload or .meta.json sidecar)
+      - name: nba_stats__leaguedashteamstats
+        description: Team pace and offensive/defensive rating per season (MeasureType=Advanced; DATA-038)
+        config:
+          freshness:
+            warn_after: {count: 400, period: day}
+            error_after: {count: 800, period: day}
+        external:
+          location: "gs://{{ env_var('DBT_RAW_BUCKET', 'nbafa-hdfo-dev-raw') }}/raw/nba_stats/leaguedashteamstats/*"
+          options:
+            format: CSV
+            field_delimiter: "	"
+            quote: ""
+            max_bad_records: 0
+        columns:
+          - name: payload
+            data_type: STRING
+            description: The whole JSON file (payload or .meta.json sidecar)
+      - name: nba_stats__drafthistory
+        description: All NBA draft picks
+        external:
+          location: "gs://{{ env_var('DBT_RAW_BUCKET', 'nbafa-hdfo-dev-raw') }}/raw/nba_stats/drafthistory/*"
+          options:
+            format: CSV
+            field_delimiter: "	"
+            quote: ""
+            max_bad_records: 0
+        columns:
+          - name: payload
+            data_type: STRING
+            description: The whole JSON file (payload or .meta.json sidecar)
+      - name: nba_stats__boxscoretraditionalv3
+        description: Per-game traditional box score, v3 JSON (pre-season starts; DATA-030)
+        external:
+          location: "gs://{{ env_var('DBT_RAW_BUCKET', 'nbafa-hdfo-dev-raw') }}/raw/nba_stats/boxscoretraditionalv3/*"
+          options:
+            format: CSV
+            field_delimiter: "\t"
+            quote: ""
+            max_bad_records: 0
+        columns:
+          - name: payload
+            data_type: STRING
+            description: The whole JSON file (payload or .meta.json sidecar)

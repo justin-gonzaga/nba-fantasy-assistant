@@ -1,0 +1,2685 @@
+{
+  "components": {
+    "schemas": {
+      "AccountExport": {
+        "properties": {
+          "profile": {
+            "$ref": "#/components/schemas/Member"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/UserSettings"
+          },
+          "sims": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/SimFull"
+            },
+            "title": "Sims",
+            "type": "array"
+          }
+        },
+        "required": [
+          "profile",
+          "settings"
+        ],
+        "title": "AccountExport",
+        "type": "object"
+      },
+      "Action": {
+        "properties": {
+          "confidence": {
+            "anyOf": [
+              {
+                "enum": [
+                  "high",
+                  "medium",
+                  "low"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "cta": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cta"
+          },
+          "deadline": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deadline"
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "lineup",
+              "injury",
+              "stream"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "why": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Why",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "title",
+          "detail",
+          "why"
+        ],
+        "title": "Action",
+        "type": "object"
+      },
+      "Badge": {
+        "description": "WEB-018: a short label with the stored numbers it was decided on.",
+        "properties": {
+          "code": {
+            "enum": [
+              "injured_today",
+              "adjusted",
+              "injury_prone",
+              "missed_time",
+              "breakout",
+              "bounce_back",
+              "rookie",
+              "top_tier"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "tone": {
+            "enum": [
+              "neutral",
+              "accent",
+              "win",
+              "lose",
+              "warn"
+            ],
+            "title": "Tone",
+            "type": "string"
+          },
+          "why": {
+            "title": "Why",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "label",
+          "tone",
+          "why"
+        ],
+        "title": "Badge",
+        "type": "object"
+      },
+      "CategoryProjection": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "mine": {
+            "title": "Mine",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "theirs": {
+            "title": "Theirs",
+            "type": "string"
+          },
+          "winProb": {
+            "title": "Winprob",
+            "type": "number"
+          }
+        },
+        "required": [
+          "code",
+          "mine",
+          "theirs",
+          "winProb"
+        ],
+        "title": "CategoryProjection",
+        "type": "object"
+      },
+      "Freshness": {
+        "properties": {
+          "asOf": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Asof"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/Source"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "staleSince": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stalesince"
+          }
+        },
+        "required": [
+          "asOf",
+          "sources"
+        ],
+        "title": "Freshness",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "Health": {
+        "properties": {
+          "status": {
+            "const": "ok",
+            "title": "Status",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "version"
+        ],
+        "title": "Health",
+        "type": "object"
+      },
+      "Indicator": {
+        "description": "WEB-020: a decision indicator with the stored numbers behind it.",
+        "properties": {
+          "code": {
+            "enum": [
+              "range",
+              "certainty",
+              "role",
+              "punt_fit",
+              "consistency",
+              "age"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "signal": {
+            "default": false,
+            "title": "Signal",
+            "type": "boolean"
+          },
+          "tone": {
+            "enum": [
+              "neutral",
+              "accent",
+              "win",
+              "lose",
+              "warn"
+            ],
+            "title": "Tone",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "why": {
+            "title": "Why",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "label",
+          "tone",
+          "why"
+        ],
+        "title": "Indicator",
+        "type": "object"
+      },
+      "Invite": {
+        "properties": {
+          "claimedAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Claimedat"
+          },
+          "claimedBy": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Claimedby"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "createdBy": {
+            "title": "Createdby",
+            "type": "string"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "expiresAt": {
+            "format": "date-time",
+            "title": "Expiresat",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "owner",
+              "member"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "open",
+              "expired",
+              "claimed"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "role",
+          "createdBy",
+          "createdAt",
+          "expiresAt",
+          "claimedBy",
+          "claimedAt",
+          "status"
+        ],
+        "title": "Invite",
+        "type": "object"
+      },
+      "InviteCreate": {
+        "properties": {
+          "email": {
+            "maxLength": 254,
+            "minLength": 3,
+            "pattern": "^\\s*[^@\\s]+@[^@\\s]+\\.[^@\\s]+\\s*$",
+            "title": "Email",
+            "type": "string"
+          },
+          "role": {
+            "default": "member",
+            "enum": [
+              "owner",
+              "member"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email"
+        ],
+        "title": "InviteCreate",
+        "type": "object"
+      },
+      "JobFreshness": {
+        "properties": {
+          "job": {
+            "title": "Job",
+            "type": "string"
+          },
+          "lastRun": {
+            "format": "date-time",
+            "title": "Lastrun",
+            "type": "string"
+          },
+          "lastStatus": {
+            "title": "Laststatus",
+            "type": "string"
+          },
+          "lastSuccess": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lastsuccess"
+          }
+        },
+        "required": [
+          "job",
+          "lastStatus",
+          "lastRun",
+          "lastSuccess"
+        ],
+        "title": "JobFreshness",
+        "type": "object"
+      },
+      "Matchup": {
+        "properties": {
+          "categories": {
+            "items": {
+              "$ref": "#/components/schemas/CategoryProjection"
+            },
+            "title": "Categories",
+            "type": "array"
+          },
+          "daysLeft": {
+            "title": "Daysleft",
+            "type": "integer"
+          },
+          "expectedCategories": {
+            "title": "Expectedcategories",
+            "type": "number"
+          },
+          "freshness": {
+            "$ref": "#/components/schemas/Freshness"
+          },
+          "opponent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Opponent"
+          },
+          "record": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Record"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "weekEnd": {
+            "format": "date",
+            "title": "Weekend",
+            "type": "string"
+          },
+          "weekStart": {
+            "format": "date",
+            "title": "Weekstart",
+            "type": "string"
+          }
+        },
+        "required": [
+          "weekStart",
+          "weekEnd",
+          "daysLeft",
+          "opponent",
+          "expectedCategories",
+          "categories",
+          "freshness"
+        ],
+        "title": "Matchup",
+        "type": "object"
+      },
+      "Me": {
+        "properties": {
+          "displayName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Displayname"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "owner",
+              "member"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "uid": {
+            "title": "Uid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "uid",
+          "email",
+          "displayName",
+          "role"
+        ],
+        "title": "Me",
+        "type": "object"
+      },
+      "Member": {
+        "properties": {
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "displayName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Displayname"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "lastSeenAt": {
+            "format": "date-time",
+            "title": "Lastseenat",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "owner",
+              "member"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "uid": {
+            "title": "Uid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "uid",
+          "email",
+          "displayName",
+          "role",
+          "createdAt",
+          "lastSeenAt"
+        ],
+        "title": "Member",
+        "type": "object"
+      },
+      "PlayerProjection": {
+        "description": "Projected per-game averages for the season (the draft model, DRAFT-008).",
+        "properties": {
+          "ast": {
+            "title": "Ast",
+            "type": "number"
+          },
+          "blk": {
+            "title": "Blk",
+            "type": "number"
+          },
+          "fg3m": {
+            "title": "Fg3M",
+            "type": "number"
+          },
+          "fgPct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fgpct"
+          },
+          "ftPct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ftpct"
+          },
+          "games": {
+            "title": "Games",
+            "type": "number"
+          },
+          "mpg": {
+            "title": "Mpg",
+            "type": "number"
+          },
+          "pts": {
+            "title": "Pts",
+            "type": "number"
+          },
+          "reb": {
+            "title": "Reb",
+            "type": "number"
+          },
+          "stl": {
+            "title": "Stl",
+            "type": "number"
+          },
+          "tov": {
+            "title": "Tov",
+            "type": "number"
+          }
+        },
+        "required": [
+          "games",
+          "mpg",
+          "pts",
+          "reb",
+          "ast",
+          "stl",
+          "blk",
+          "fg3m",
+          "tov",
+          "fgPct",
+          "ftPct"
+        ],
+        "title": "PlayerProjection",
+        "type": "object"
+      },
+      "PlayerRow": {
+        "properties": {
+          "badges": {
+            "items": {
+              "$ref": "#/components/schemas/Badge"
+            },
+            "title": "Badges",
+            "type": "array"
+          },
+          "dollars": {
+            "title": "Dollars",
+            "type": "number"
+          },
+          "healthyDollars": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Healthydollars"
+          },
+          "healthyRank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Healthyrank"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "inPool": {
+            "title": "Inpool",
+            "type": "boolean"
+          },
+          "indicators": {
+            "items": {
+              "$ref": "#/components/schemas/Indicator"
+            },
+            "title": "Indicators",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "positions": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Positions"
+          },
+          "projection": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PlayerProjection"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "rank": {
+            "title": "Rank",
+            "type": "integer"
+          },
+          "signal": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Indicator"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "strengths": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Strengths",
+            "type": "object"
+          },
+          "team": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Team"
+          },
+          "tier": {
+            "title": "Tier",
+            "type": "integer"
+          },
+          "value": {
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "team",
+          "positions",
+          "rank",
+          "tier",
+          "dollars",
+          "value",
+          "inPool",
+          "status",
+          "strengths",
+          "projection"
+        ],
+        "title": "PlayerRow",
+        "type": "object"
+      },
+      "Players": {
+        "properties": {
+          "badgeNotes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Badgenotes",
+            "type": "array"
+          },
+          "freshness": {
+            "$ref": "#/components/schemas/Freshness"
+          },
+          "players": {
+            "items": {
+              "$ref": "#/components/schemas/PlayerRow"
+            },
+            "title": "Players",
+            "type": "array"
+          },
+          "variant": {
+            "title": "Variant",
+            "type": "string"
+          },
+          "variants": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Variants",
+            "type": "array"
+          }
+        },
+        "required": [
+          "variant",
+          "variants",
+          "players",
+          "freshness"
+        ],
+        "title": "Players",
+        "type": "object"
+      },
+      "Product": {
+        "properties": {
+          "asOf": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Asof"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "asOf"
+        ],
+        "title": "Product",
+        "type": "object"
+      },
+      "Record": {
+        "properties": {
+          "losses": {
+            "title": "Losses",
+            "type": "integer"
+          },
+          "ties": {
+            "title": "Ties",
+            "type": "integer"
+          },
+          "wins": {
+            "title": "Wins",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "wins",
+          "losses",
+          "ties"
+        ],
+        "title": "Record",
+        "type": "object"
+      },
+      "ReplaySeasons": {
+        "properties": {
+          "seasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Seasons",
+            "type": "array"
+          }
+        },
+        "required": [
+          "seasons"
+        ],
+        "title": "ReplaySeasons",
+        "type": "object"
+      },
+      "SettingsPatch": {
+        "additionalProperties": false,
+        "description": "Only the fields sent change. Send with If-Match: the ETag from GET /me/settings.",
+        "properties": {
+          "alerts": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alerts"
+          },
+          "awakeEnd": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Awakeend"
+          },
+          "awakeStart": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Awakestart"
+          },
+          "briefEnabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Briefenabled"
+          },
+          "displayName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Displayname"
+          },
+          "draftStrategy": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Draftstrategy"
+          },
+          "theme": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Theme"
+          },
+          "timeZone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone"
+          }
+        },
+        "title": "SettingsPatch",
+        "type": "object"
+      },
+      "SimFull": {
+        "properties": {
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "detail": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          },
+          "hasDetail": {
+            "description": "False once an old practice run is trimmed to its summary",
+            "title": "Hasdetail",
+            "type": "boolean"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "practice",
+              "league"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "pinned": {
+            "title": "Pinned",
+            "type": "boolean"
+          },
+          "season": {
+            "title": "Season",
+            "type": "string"
+          },
+          "summary": {
+            "additionalProperties": true,
+            "title": "Summary",
+            "type": "object"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "title": "Updatedat",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "season",
+          "title",
+          "summary",
+          "pinned",
+          "hasDetail",
+          "createdAt",
+          "updatedAt",
+          "version",
+          "detail"
+        ],
+        "title": "SimFull",
+        "type": "object"
+      },
+      "SimIn": {
+        "additionalProperties": false,
+        "description": "A finished practice draft or a new replay league. `id` is the client's (idempotent).",
+        "properties": {
+          "detail": {
+            "additionalProperties": true,
+            "description": "The full run or league (\u2264 256 KB)",
+            "title": "Detail",
+            "type": "object"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "practice",
+              "league"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "season": {
+            "title": "Season",
+            "type": "string"
+          },
+          "summary": {
+            "additionalProperties": true,
+            "description": "Small (\u2264 4 KB): what the list shows",
+            "title": "Summary",
+            "type": "object"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "season",
+          "title",
+          "summary",
+          "detail"
+        ],
+        "title": "SimIn",
+        "type": "object"
+      },
+      "SimPin": {
+        "properties": {
+          "pinned": {
+            "title": "Pinned",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "pinned"
+        ],
+        "title": "SimPin",
+        "type": "object"
+      },
+      "SimSummary": {
+        "properties": {
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "hasDetail": {
+            "description": "False once an old practice run is trimmed to its summary",
+            "title": "Hasdetail",
+            "type": "boolean"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "practice",
+              "league"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "pinned": {
+            "title": "Pinned",
+            "type": "boolean"
+          },
+          "season": {
+            "title": "Season",
+            "type": "string"
+          },
+          "summary": {
+            "additionalProperties": true,
+            "title": "Summary",
+            "type": "object"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "title": "Updatedat",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "season",
+          "title",
+          "summary",
+          "pinned",
+          "hasDetail",
+          "createdAt",
+          "updatedAt",
+          "version"
+        ],
+        "title": "SimSummary",
+        "type": "object"
+      },
+      "SimUpdate": {
+        "additionalProperties": false,
+        "properties": {
+          "detail": {
+            "additionalProperties": true,
+            "title": "Detail",
+            "type": "object"
+          },
+          "summary": {
+            "additionalProperties": true,
+            "title": "Summary",
+            "type": "object"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "summary",
+          "detail"
+        ],
+        "title": "SimUpdate",
+        "type": "object"
+      },
+      "Source": {
+        "properties": {
+          "asOf": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Asof"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "asOf"
+        ],
+        "title": "Source",
+        "type": "object"
+      },
+      "SystemFreshness": {
+        "properties": {
+          "jobs": {
+            "items": {
+              "$ref": "#/components/schemas/JobFreshness"
+            },
+            "title": "Jobs",
+            "type": "array"
+          },
+          "products": {
+            "items": {
+              "$ref": "#/components/schemas/Product"
+            },
+            "title": "Products",
+            "type": "array"
+          }
+        },
+        "required": [
+          "products",
+          "jobs"
+        ],
+        "title": "SystemFreshness",
+        "type": "object"
+      },
+      "TelegramLink": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "expiresAt": {
+            "format": "date-time",
+            "title": "Expiresat",
+            "type": "string"
+          },
+          "instructions": {
+            "title": "Instructions",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "expiresAt",
+          "instructions"
+        ],
+        "title": "TelegramLink",
+        "type": "object"
+      },
+      "Today": {
+        "properties": {
+          "actions": {
+            "items": {
+              "$ref": "#/components/schemas/Action"
+            },
+            "title": "Actions",
+            "type": "array"
+          },
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "freshness": {
+            "$ref": "#/components/schemas/Freshness"
+          },
+          "matchup": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Matchup"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "date",
+          "matchup",
+          "actions",
+          "freshness"
+        ],
+        "title": "Today",
+        "type": "object"
+      },
+      "UserSettings": {
+        "properties": {
+          "alerts": {
+            "items": {
+              "enum": [
+                "brief",
+                "injury",
+                "waiver"
+              ],
+              "type": "string"
+            },
+            "title": "Alerts",
+            "type": "array"
+          },
+          "awakeEnd": {
+            "description": "HH:MM, 24-hour, in time_zone",
+            "title": "Awakeend",
+            "type": "string"
+          },
+          "awakeStart": {
+            "description": "HH:MM, 24-hour, in time_zone",
+            "title": "Awakestart",
+            "type": "string"
+          },
+          "briefEnabled": {
+            "title": "Briefenabled",
+            "type": "boolean"
+          },
+          "displayName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Displayname"
+          },
+          "draftStrategy": {
+            "description": "all, or punt_<category>",
+            "title": "Draftstrategy",
+            "type": "string"
+          },
+          "telegramLinked": {
+            "title": "Telegramlinked",
+            "type": "boolean"
+          },
+          "theme": {
+            "enum": [
+              "system",
+              "light",
+              "dark"
+            ],
+            "title": "Theme",
+            "type": "string"
+          },
+          "timeZone": {
+            "title": "Timezone",
+            "type": "string"
+          },
+          "version": {
+            "description": "0 until first saved; the ETag carries it too",
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "timeZone",
+          "briefEnabled",
+          "awakeStart",
+          "awakeEnd",
+          "alerts",
+          "draftStrategy",
+          "theme",
+          "displayName",
+          "telegramLinked",
+          "version"
+        ],
+        "title": "UserSettings",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "WaiverCandidate": {
+        "properties": {
+          "gain": {
+            "title": "Gain",
+            "type": "number"
+          },
+          "gamesLeft": {
+            "title": "Gamesleft",
+            "type": "integer"
+          },
+          "helps": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Helps",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "positions": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Positions"
+          },
+          "team": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Team"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "gamesLeft",
+          "helps",
+          "gain"
+        ],
+        "title": "WaiverCandidate",
+        "type": "object"
+      },
+      "Waivers": {
+        "properties": {
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/WaiverCandidate"
+            },
+            "title": "Candidates",
+            "type": "array"
+          },
+          "freshness": {
+            "$ref": "#/components/schemas/Freshness"
+          },
+          "horizon": {
+            "default": "this week",
+            "title": "Horizon",
+            "type": "string"
+          },
+          "suggestedDrop": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Suggesteddrop"
+          }
+        },
+        "required": [
+          "candidates",
+          "suggestedDrop",
+          "freshness"
+        ],
+        "title": "Waivers",
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "description": "Read-only views over the published daily outputs (D-62), plus users, roles and invites (D-64).",
+    "title": "NBA Fantasy Assistant API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/invites": {
+      "get": {
+        "operationId": "list_invites_invites_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Invite"
+                  },
+                  "title": "Response List Invites Invites Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Invites",
+        "tags": [
+          "users"
+        ]
+      },
+      "post": {
+        "operationId": "create_invite_invites_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InviteCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "An open invite for this email already existed"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Invite"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Invite",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/invites/{invite_id}": {
+      "delete": {
+        "operationId": "revoke_invite_invites__invite_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "invite_id",
+            "required": true,
+            "schema": {
+              "title": "Invite Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Revoke Invite",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/matchup": {
+      "get": {
+        "operationId": "matchup_matchup_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "day",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Day"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Matchup"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Matchup",
+        "tags": [
+          "views"
+        ]
+      }
+    },
+    "/me": {
+      "delete": {
+        "operationId": "delete_me_me_delete",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "409": {
+            "description": "The last owner can't delete their account"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Me",
+        "tags": [
+          "settings"
+        ]
+      },
+      "get": {
+        "operationId": "me_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Me"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Me",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/me/export": {
+      "get": {
+        "operationId": "export_me_export_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountExport"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Export",
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/me/settings": {
+      "get": {
+        "operationId": "get_settings_me_settings_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserSettings"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Settings",
+        "tags": [
+          "settings"
+        ]
+      },
+      "patch": {
+        "operationId": "patch_settings_me_settings_patch",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "if-match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-Match"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SettingsPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserSettings"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "412": {
+            "description": "Changed elsewhere: the body's `current` is the stored document"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "428": {
+            "description": "If-Match is required"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Patch Settings",
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/me/sims": {
+      "get": {
+        "operationId": "list_sims_me_sims_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "practice",
+                    "league"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Kind"
+            }
+          },
+          {
+            "in": "query",
+            "name": "season",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Season"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SimSummary"
+                  },
+                  "title": "Response List Sims Me Sims Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Sims",
+        "tags": [
+          "sims"
+        ]
+      },
+      "post": {
+        "operationId": "save_sim_me_sims_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SimIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Already saved (same id): the stored copy"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimFull"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "409": {
+            "description": "too-many-leagues"
+          },
+          "413": {
+            "description": "Over 256 KB"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Save Sim",
+        "tags": [
+          "sims"
+        ]
+      }
+    },
+    "/me/sims/{sim_id}": {
+      "delete": {
+        "operationId": "delete_sim_me_sims__sim_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sim_id",
+            "required": true,
+            "schema": {
+              "title": "Sim Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Sim",
+        "tags": [
+          "sims"
+        ]
+      },
+      "get": {
+        "operationId": "get_sim_me_sims__sim_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sim_id",
+            "required": true,
+            "schema": {
+              "title": "Sim Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimFull"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Sim",
+        "tags": [
+          "sims"
+        ]
+      },
+      "put": {
+        "description": "A replay league as it progresses (weeks kept, roster): compare-and-set on its version.",
+        "operationId": "update_league_me_sims__sim_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sim_id",
+            "required": true,
+            "schema": {
+              "title": "Sim Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "if-match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-Match"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SimUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimFull"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "412": {
+            "description": "Changed elsewhere: the body's `current` is the stored copy"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "428": {
+            "description": "If-Match is required"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update League",
+        "tags": [
+          "sims"
+        ]
+      }
+    },
+    "/me/sims/{sim_id}/pin": {
+      "patch": {
+        "operationId": "pin_sim_me_sims__sim_id__pin_patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sim_id",
+            "required": true,
+            "schema": {
+              "title": "Sim Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SimPin"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "409": {
+            "description": "too-many-pins"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Pin Sim",
+        "tags": [
+          "sims"
+        ]
+      }
+    },
+    "/me/telegram/link": {
+      "post": {
+        "operationId": "telegram_link_me_telegram_link_post",
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TelegramLink"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Telegram Link",
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/members": {
+      "get": {
+        "operationId": "list_members_members_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Member"
+                  },
+                  "title": "Response List Members Members Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Members",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/members/{uid}": {
+      "delete": {
+        "operationId": "remove_member_members__uid__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "uid",
+            "required": true,
+            "schema": {
+              "title": "Uid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Remove Member",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/players": {
+      "get": {
+        "operationId": "players_players_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "variant",
+            "required": false,
+            "schema": {
+              "default": "all",
+              "title": "Variant",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Players"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Players",
+        "tags": [
+          "players"
+        ]
+      }
+    },
+    "/replay/seasons": {
+      "get": {
+        "operationId": "replay_seasons_replay_seasons_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReplaySeasons"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Replay Seasons",
+        "tags": [
+          "replay"
+        ]
+      }
+    },
+    "/replay/{season}": {
+      "get": {
+        "operationId": "replay_season_replay__season__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "season",
+            "required": true,
+            "schema": {
+              "title": "Season",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "The season document"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Replay Season",
+        "tags": [
+          "replay"
+        ]
+      }
+    },
+    "/system/freshness": {
+      "get": {
+        "operationId": "freshness_system_freshness_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SystemFreshness"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Freshness",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/system/health": {
+      "get": {
+        "operationId": "health_system_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/today": {
+      "get": {
+        "operationId": "today_today_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "day",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Day"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Today"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Today",
+        "tags": [
+          "views"
+        ]
+      }
+    },
+    "/waivers": {
+      "get": {
+        "operationId": "waivers_waivers_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "day",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Day"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Waivers"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Waivers",
+        "tags": [
+          "views"
+        ]
+      }
+    }
+  }
+}
