@@ -13,6 +13,7 @@ permissions:
 
 jobs:
   cleanup:
+    if: vars.CLOUD_RUN_ENABLED == 'true' # needs GCP: off until WIF trusts this repo (INFRA-011)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
