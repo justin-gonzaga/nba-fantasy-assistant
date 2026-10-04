@@ -341,7 +341,7 @@ jobs:
   # dbt build (models + tests + seeds) against dev raw, into per-PR datasets labelled ci=true.
   # Dropped at the end; ci-dataset-cleanup.yml removes anything left behind.
   dbt:
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && vars.CLOUD_RUN_ENABLED == 'true' # needs GCP: off until WIF trusts this repo (INFRA-011)
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
