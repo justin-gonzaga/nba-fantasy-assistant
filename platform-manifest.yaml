@@ -20,6 +20,7 @@ harness:
   - env.example
   - platform-manifest.yaml
   - README.md
+  - LICENSE
   - .claude/*
   - .github/*
   - tools/tasks.py

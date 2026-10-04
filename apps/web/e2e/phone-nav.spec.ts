@@ -72,7 +72,7 @@ test('tap to the practice room, Season replay and Past sims', async ({ page }) =
   await fits(page, 'setup')
   await page.getByRole('radio', { name: /Real timers/ }).check()
   await page.getByRole('button', { name: 'Start practice draft' }).click()
-  await expect(page.getByText(/^\d+s$/).first()).toBeVisible()
+  await expect(page.getByTestId('clock-ring').first()).toBeVisible()
   await fits(page, 'room')
   const vp = page.viewportSize()
   const sim = page.getByRole('button', { name: 'Sim the rest' })
