@@ -4,7 +4,7 @@ title: "Practice room feel: closing-ring clock, sound effects and motion"
 epic: EP-15 Draft assistant
 phase: 7
 component: web
-status: in_progress
+status: done
 ready: true
 size: M
 autonomy: auto
@@ -14,7 +14,7 @@ areas: [apps/web/**]
 standards: [frontend, testing]
 assignee: claude
 created: 2026-10-04
-completed:
+completed: 2026-10-04
 ---
 # DRAFT-020 — Practice room feel
 

@@ -2,13 +2,20 @@
 
 _Keep ≤ 60 lines. Updated at the end of every task/session. Session-start brief: `python tools/tasks.py status`._
 
-**As of**: 2026-10-03 (evening) · **Draft**: Sun 18 Oct · **Tip-off**: Tue 20 Oct · **Site**: https://nbafa-hdfo-dev.web.app
+**As of**: 2026-10-04 (night) · **Draft**: Sun 18 Oct · **Tip-off**: Tue 20 Oct · **Site**: https://nbafa-hdfo-dev.web.app
 
-## Specs ready for review (2026-10-04, owner's second request)
-Phone can't reach the simulator (WEB-029: no tab; fix = a Practice tab), room feel (DRAFT-020: closing ring, sounds,
-motion), draft settings (APP-011 API, DRAFT-017 page; DRAFT-018/019/021 values, formats, snake), scale (PERF-001/002),
-and the Lillard case (DRAFT-022: lost-season games, gate G-32). G-32 and G-33 (D-70 B, D-71 all A) approved 2026-10-04.
-Order before 18 Oct: WEB-029, DRAFT-022 (eval by 15 Oct), DRAFT-020, APP-011 + DRAFT-017.
+## Repo is public (SEC-001, G-36, 2026-10-04)
+Fresh single-commit public repo `justin-gonzaga/nba-fantasy-assistant` (PolyForm Noncommercial 1.0.0); the old history is the
+private `-archive` repo. Actions are free there and CI runs again (security, lint-type, test-py, web, image, docs, web-e2e green).
+Merged: phone fit (WEB-040), practice room ring clock + sounds + motion (DRAFT-020), reuse register (GEN-009).
+**Needs you**: (1) `terraform apply` in `infra/terraform/bootstrap` after merging PR 3 (INFRA-011: WIF pins the new repo id), then set
+repo variables `CLOUD_RUN_ENABLED` and `FIREBASE_ENABLED` to `true` (until then no deploy from CI and the dbt PR job is skipped);
+(2) set your git email to the GitHub noreply address (`git config --global user.email`), the global config still holds the
+university address; (3) optionally close the old PRs 134-138 in the archive.
+
+## Specs ready (2026-10-04)
+Still to build before 18 Oct: draft settings (APP-011 API, DRAFT-017 page; DRAFT-018/019/021 values, formats, snake) and
+scale (PERF-001/002). Done: WEB-029, DRAFT-022, DRAFT-020 (AC9 listening pass is yours).
 
 ## Latest (2026-10-04)
 **Season replay** (G-31, SIM-001…004): draft on 2023-24, 2024-25 or 2025-26 (pre-season values only), then play
@@ -49,6 +56,5 @@ a report, continue a season on any device (more kept weeks wins). APP-009 settin
 
 ## Lessons tonight (ledger rows 35–38)
 - `to_camel` turned `fg3m` into `fg3M`; typecheck against generated types caught it.
-- A pairwise report labelled the comparison backwards; now the candidate's position is asserted.
 - Polars `rank()` is unsigned: rank differences wrapped and nearly triggered a model task; cast to signed first.
 - Every new indicator was checked on real data before shipping: two calibrations were wrong and got fixed.
