@@ -11,6 +11,7 @@ from dataclasses import replace
 from datetime import datetime
 from typing import Literal, Protocol, TypeVar
 
+from fantasy_api.users.draft_settings import DraftDoc
 from fantasy_api.users.model import Invite, User
 from fantasy_api.users.settings import LinkCode, Settings
 from fantasy_api.users.sims import Plan, Sim
@@ -68,6 +69,14 @@ class UserStore(Protocol):
         """Compare-and-set: save only if the stored version (0 when none) is `expected_version`."""
         ...
 
+    def get_draft_settings(self, uid: str) -> DraftDoc | None:
+        """None when this user never saved draft settings (the API answers with the defaults)."""
+        ...
+
+    def save_draft_settings_if(self, uid: str, doc: DraftDoc, expected_version: int) -> bool:
+        """Compare-and-set: save only if the stored version (0 when none) is `expected_version`."""
+        ...
+
     def save_link_code(self, code: LinkCode) -> None: ...
 
     def use_link_code(self, code: str, now: datetime) -> LinkCode | None:
@@ -91,6 +100,7 @@ class InMemoryUserStore:
         self._users: dict[str, User] = {}
         self._invites: dict[str, Invite] = {}
         self._settings: dict[str, Settings] = {}
+        self._drafts: dict[str, DraftDoc] = {}
         self._codes: dict[str, LinkCode] = {}
         self._sims: dict[str, dict[str, Sim]] = {}
         self._lock = threading.Lock()
@@ -143,6 +153,7 @@ class InMemoryUserStore:
                 return "last-owner"
             del self._users[uid]
             self._settings.pop(uid, None)
+            self._drafts.pop(uid, None)
             self._sims.pop(uid, None)
             return "deleted"
 
@@ -166,6 +177,17 @@ class InMemoryUserStore:
             if (current.version if current else 0) != expected_version:
                 return False
             self._settings[uid] = settings
+            return True
+
+    def get_draft_settings(self, uid: str) -> DraftDoc | None:
+        return self._drafts.get(uid)
+
+    def save_draft_settings_if(self, uid: str, doc: DraftDoc, expected_version: int) -> bool:
+        with self._lock:
+            current = self._drafts.get(uid)
+            if (current.version if current else 0) != expected_version:
+                return False
+            self._drafts[uid] = doc
             return True
 
     def save_link_code(self, code: LinkCode) -> None:

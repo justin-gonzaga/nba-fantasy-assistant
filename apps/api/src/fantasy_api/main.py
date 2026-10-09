@@ -17,8 +17,8 @@ from dikit.time.clock import Clock, SystemClock
 from fantasy_api import errors, players, replay, system, views
 from fantasy_api.auth import DEFAULT_PER_MINUTE, AuthConfig, RateLimiter, firebase_verifier
 from fantasy_api.store import DataStore
+from fantasy_api.users import draft_settings_routes, settings_routes, sims_routes
 from fantasy_api.users import routes as user_routes
-from fantasy_api.users import settings_routes, sims_routes
 from fantasy_api.users.service import UserService
 from fantasy_api.users.settings_service import SettingsService
 from fantasy_api.users.store import InMemoryUserStore, UserStore
@@ -77,6 +77,7 @@ def create_app(  # noqa: PLR0913 - the factory's injected options, keyword-only
     app.include_router(system.router)
     app.include_router(user_routes.router)
     app.include_router(settings_routes.router)
+    app.include_router(draft_settings_routes.router)
     app.include_router(settings_routes.webhook_router)
     app.include_router(sims_routes.router)
     app.include_router(views.router)

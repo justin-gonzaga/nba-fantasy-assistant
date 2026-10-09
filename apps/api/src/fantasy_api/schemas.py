@@ -12,6 +12,8 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
+from fantasy_core.league import ScoringFormat
+
 
 class ApiModel(BaseModel):
     model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
@@ -249,6 +251,63 @@ class SettingsPatch(ApiModel):
     display_name: str | None = None
 
 
+# ---------- draft settings and presets (APP-011) ----------
+class DraftFx(ApiModel):
+    sound: bool
+    volume: float = Field(ge=0, le=1)
+    tick: Literal["off", "last10", "every"]
+    motion: Literal["auto", "reduced"]
+
+
+class DraftLeague(ApiModel):
+    scoring: ScoringFormat
+    drafting: Literal["auction", "snake"]
+    teams: int = Field(ge=4, le=20)
+    budget: int | None = Field(description="Auction budget 50..1000; null for a snake draft")
+    spots: int = Field(ge=5, le=25)
+    seat: int = Field(ge=1, description="1..teams; used by snake only")
+    categories: list[str] | None = Field(
+        default=None, description="Category formats: a subset of the stats"
+    )
+    weights: dict[str, float] | None = Field(
+        default=None, description="Points formats: stat -> points"
+    )
+
+
+class DraftRoom(ApiModel):
+    pace: Literal["real", "fast", "untimed", "custom"]
+    nominate_seconds: int = Field(ge=5, le=120)
+    bid_seconds: int = Field(ge=5, le=120)
+    styles: Literal["mix", "balanced", "stars", "punter", "value"]
+
+
+class DraftStrategy(ApiModel):
+    punt: str | None = Field(description="null, or one of the league's category codes")
+
+
+class DraftPreset(ApiModel):
+    id: str = Field(description="1..40 of A-Za-z0-9_-")
+    name: str = Field(description="1..40 characters, unique ignoring case")
+    updated_at: datetime
+    league: DraftLeague
+    room: DraftRoom
+    strategy: DraftStrategy
+    season: str = Field(description="current, or like 2025-26")
+
+
+class DraftSettings(ApiModel):
+    """The saved document. PUT it back whole with If-Match: the ETag from GET /me/draft-settings."""
+
+    active_id: str | None = Field(
+        description="The preset the setup page starts with; null = built-in"
+    )
+    presets: list[DraftPreset] = Field(max_length=10)
+    fx: DraftFx
+    version: int = Field(
+        description="0 until first saved; the ETag carries it too. Ignored on PUT: If-Match decides"
+    )
+
+
 class TelegramLink(ApiModel):
     code: str
     expires_at: datetime
@@ -302,4 +361,5 @@ class SimFull(SimSummary):
 class AccountExport(ApiModel):
     profile: Member
     settings: UserSettings
+    draft_settings: DraftSettings
     sims: list[SimFull] = []

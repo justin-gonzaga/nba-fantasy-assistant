@@ -3,6 +3,9 @@
     "schemas": {
       "AccountExport": {
         "properties": {
+          "draftSettings": {
+            "$ref": "#/components/schemas/DraftSettings"
+          },
           "profile": {
             "$ref": "#/components/schemas/Member"
           },
@@ -20,7 +23,8 @@
         },
         "required": [
           "profile",
-          "settings"
+          "settings",
+          "draftSettings"
         ],
         "title": "AccountExport",
         "type": "object"
@@ -187,6 +191,281 @@
           "winProb"
         ],
         "title": "CategoryProjection",
+        "type": "object"
+      },
+      "DraftFx": {
+        "properties": {
+          "motion": {
+            "enum": [
+              "auto",
+              "reduced"
+            ],
+            "title": "Motion",
+            "type": "string"
+          },
+          "sound": {
+            "title": "Sound",
+            "type": "boolean"
+          },
+          "tick": {
+            "enum": [
+              "off",
+              "last10",
+              "every"
+            ],
+            "title": "Tick",
+            "type": "string"
+          },
+          "volume": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Volume",
+            "type": "number"
+          }
+        },
+        "required": [
+          "sound",
+          "volume",
+          "tick",
+          "motion"
+        ],
+        "title": "DraftFx",
+        "type": "object"
+      },
+      "DraftLeague": {
+        "properties": {
+          "budget": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Auction budget 50..1000; null for a snake draft",
+            "title": "Budget"
+          },
+          "categories": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Category formats: a subset of the stats",
+            "title": "Categories"
+          },
+          "drafting": {
+            "enum": [
+              "auction",
+              "snake"
+            ],
+            "title": "Drafting",
+            "type": "string"
+          },
+          "scoring": {
+            "$ref": "#/components/schemas/ScoringFormat"
+          },
+          "seat": {
+            "description": "1..teams; used by snake only",
+            "minimum": 1.0,
+            "title": "Seat",
+            "type": "integer"
+          },
+          "spots": {
+            "maximum": 25.0,
+            "minimum": 5.0,
+            "title": "Spots",
+            "type": "integer"
+          },
+          "teams": {
+            "maximum": 20.0,
+            "minimum": 4.0,
+            "title": "Teams",
+            "type": "integer"
+          },
+          "weights": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "number"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Points formats: stat -> points",
+            "title": "Weights"
+          }
+        },
+        "required": [
+          "scoring",
+          "drafting",
+          "teams",
+          "budget",
+          "spots",
+          "seat"
+        ],
+        "title": "DraftLeague",
+        "type": "object"
+      },
+      "DraftPreset": {
+        "properties": {
+          "id": {
+            "description": "1..40 of A-Za-z0-9_-",
+            "title": "Id",
+            "type": "string"
+          },
+          "league": {
+            "$ref": "#/components/schemas/DraftLeague"
+          },
+          "name": {
+            "description": "1..40 characters, unique ignoring case",
+            "title": "Name",
+            "type": "string"
+          },
+          "room": {
+            "$ref": "#/components/schemas/DraftRoom"
+          },
+          "season": {
+            "description": "current, or like 2025-26",
+            "title": "Season",
+            "type": "string"
+          },
+          "strategy": {
+            "$ref": "#/components/schemas/DraftStrategy"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "title": "Updatedat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "updatedAt",
+          "league",
+          "room",
+          "strategy",
+          "season"
+        ],
+        "title": "DraftPreset",
+        "type": "object"
+      },
+      "DraftRoom": {
+        "properties": {
+          "bidSeconds": {
+            "maximum": 120.0,
+            "minimum": 5.0,
+            "title": "Bidseconds",
+            "type": "integer"
+          },
+          "nominateSeconds": {
+            "maximum": 120.0,
+            "minimum": 5.0,
+            "title": "Nominateseconds",
+            "type": "integer"
+          },
+          "pace": {
+            "enum": [
+              "real",
+              "fast",
+              "untimed",
+              "custom"
+            ],
+            "title": "Pace",
+            "type": "string"
+          },
+          "styles": {
+            "enum": [
+              "mix",
+              "balanced",
+              "stars",
+              "punter",
+              "value"
+            ],
+            "title": "Styles",
+            "type": "string"
+          }
+        },
+        "required": [
+          "pace",
+          "nominateSeconds",
+          "bidSeconds",
+          "styles"
+        ],
+        "title": "DraftRoom",
+        "type": "object"
+      },
+      "DraftSettings": {
+        "description": "The saved document. PUT it back whole with If-Match: the ETag from GET /me/draft-settings.",
+        "properties": {
+          "activeId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The preset the setup page starts with; null = built-in",
+            "title": "Activeid"
+          },
+          "fx": {
+            "$ref": "#/components/schemas/DraftFx"
+          },
+          "presets": {
+            "items": {
+              "$ref": "#/components/schemas/DraftPreset"
+            },
+            "maxItems": 10,
+            "title": "Presets",
+            "type": "array"
+          },
+          "version": {
+            "description": "0 until first saved; the ETag carries it too. Ignored on PUT: If-Match decides",
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "activeId",
+          "presets",
+          "fx",
+          "version"
+        ],
+        "title": "DraftSettings",
+        "type": "object"
+      },
+      "DraftStrategy": {
+        "properties": {
+          "punt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "null, or one of the league's category codes",
+            "title": "Punt"
+          }
+        },
+        "required": [
+          "punt"
+        ],
+        "title": "DraftStrategy",
         "type": "object"
       },
       "Freshness": {
@@ -943,6 +1222,17 @@
         ],
         "title": "ReplaySeasons",
         "type": "object"
+      },
+      "ScoringFormat": {
+        "enum": [
+          "h2h_categories",
+          "h2h_one_win",
+          "rotisserie",
+          "h2h_points",
+          "season_points"
+        ],
+        "title": "ScoringFormat",
+        "type": "string"
       },
       "SettingsPatch": {
         "additionalProperties": false,
@@ -1832,6 +2122,96 @@
         "summary": "Me",
         "tags": [
           "users"
+        ]
+      }
+    },
+    "/me/draft-settings": {
+      "get": {
+        "operationId": "get_draft_settings_me_draft_settings_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftSettings"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Draft Settings",
+        "tags": [
+          "settings"
+        ]
+      },
+      "put": {
+        "operationId": "put_draft_settings_me_draft_settings_put",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "if-match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-Match"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DraftSettings"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftSettings"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "412": {
+            "description": "Changed elsewhere: the body's `current` is the stored document"
+          },
+          "413": {
+            "description": "Over 16 KB"
+          },
+          "422": {
+            "description": "A field failed validation: `field` is its path"
+          },
+          "428": {
+            "description": "If-Match is required"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Put Draft Settings",
+        "tags": [
+          "settings"
         ]
       }
     },

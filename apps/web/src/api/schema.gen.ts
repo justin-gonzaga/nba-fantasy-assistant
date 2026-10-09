@@ -74,6 +74,24 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/me/draft-settings': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get Draft Settings */
+    get: operations['get_draft_settings_me_draft_settings_get']
+    /** Put Draft Settings */
+    put: operations['put_draft_settings_me_draft_settings_put']
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/me/export': {
     parameters: {
       query?: never
@@ -342,6 +360,7 @@ export interface components {
   schemas: {
     /** AccountExport */
     AccountExport: {
+      draftSettings: components['schemas']['DraftSettings']
       profile: components['schemas']['Member']
       settings: components['schemas']['UserSettings']
       /**
@@ -412,6 +431,128 @@ export interface components {
       theirs: string
       /** Winprob */
       winProb: number
+    }
+    /** DraftFx */
+    DraftFx: {
+      /**
+       * Motion
+       * @enum {string}
+       */
+      motion: 'auto' | 'reduced'
+      /** Sound */
+      sound: boolean
+      /**
+       * Tick
+       * @enum {string}
+       */
+      tick: 'off' | 'last10' | 'every'
+      /** Volume */
+      volume: number
+    }
+    /** DraftLeague */
+    DraftLeague: {
+      /**
+       * Budget
+       * @description Auction budget 50..1000; null for a snake draft
+       */
+      budget: number | null
+      /**
+       * Categories
+       * @description Category formats: a subset of the stats
+       */
+      categories?: string[] | null
+      /**
+       * Drafting
+       * @enum {string}
+       */
+      drafting: 'auction' | 'snake'
+      scoring: components['schemas']['ScoringFormat']
+      /**
+       * Seat
+       * @description 1..teams; used by snake only
+       */
+      seat: number
+      /** Spots */
+      spots: number
+      /** Teams */
+      teams: number
+      /**
+       * Weights
+       * @description Points formats: stat -> points
+       */
+      weights?: {
+        [key: string]: number
+      } | null
+    }
+    /** DraftPreset */
+    DraftPreset: {
+      /**
+       * Id
+       * @description 1..40 of A-Za-z0-9_-
+       */
+      id: string
+      league: components['schemas']['DraftLeague']
+      /**
+       * Name
+       * @description 1..40 characters, unique ignoring case
+       */
+      name: string
+      room: components['schemas']['DraftRoom']
+      /**
+       * Season
+       * @description current, or like 2025-26
+       */
+      season: string
+      strategy: components['schemas']['DraftStrategy']
+      /**
+       * Updatedat
+       * Format: date-time
+       */
+      updatedAt: string
+    }
+    /** DraftRoom */
+    DraftRoom: {
+      /** Bidseconds */
+      bidSeconds: number
+      /** Nominateseconds */
+      nominateSeconds: number
+      /**
+       * Pace
+       * @enum {string}
+       */
+      pace: 'real' | 'fast' | 'untimed' | 'custom'
+      /**
+       * Styles
+       * @enum {string}
+       */
+      styles: 'mix' | 'balanced' | 'stars' | 'punter' | 'value'
+    }
+    /**
+     * DraftSettings
+     * @description The saved document. PUT it back whole with If-Match: the ETag from GET /me/draft-settings.
+     */
+    DraftSettings: {
+      /**
+       * Activeid
+       * @description The preset the setup page starts with; null = built-in
+       */
+      activeId: string | null
+      fx: components['schemas']['DraftFx']
+      /** Presets */
+      presets: components['schemas']['DraftPreset'][]
+      /**
+       * Version
+       * @description 0 until first saved; the ETag carries it too. Ignored on PUT: If-Match decides
+       */
+      version: number
+    }
+    /** DraftStrategy */
+    DraftStrategy: {
+      /**
+       * Punt
+       * @description null, or one of the league's category codes
+       */
+      punt: string | null
     }
     /** Freshness */
     Freshness: {
@@ -681,6 +822,11 @@ export interface components {
       /** Seasons */
       seasons: string[]
     }
+    /**
+     * ScoringFormat
+     * @enum {string}
+     */
+    ScoringFormat: 'h2h_categories' | 'h2h_one_win' | 'rotisserie' | 'h2h_points' | 'season_points'
     /**
      * SettingsPatch
      * @description Only the fields sent change. Send with If-Match: the ETag from GET /me/settings.
@@ -1116,6 +1262,80 @@ export interface operations {
       }
       /** @description The last owner can't delete their account */
       409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+    }
+  }
+  get_draft_settings_me_draft_settings_get: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['DraftSettings']
+        }
+      }
+    }
+  }
+  put_draft_settings_me_draft_settings_put: {
+    parameters: {
+      query?: never
+      header?: {
+        'if-match'?: string | null
+      }
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['DraftSettings']
+      }
+    }
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['DraftSettings']
+        }
+      }
+      /** @description Changed elsewhere: the body's `current` is the stored document */
+      412: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Over 16 KB */
+      413: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description A field failed validation: `field` is its path */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description If-Match is required */
+      428: {
         headers: {
           [name: string]: unknown
         }

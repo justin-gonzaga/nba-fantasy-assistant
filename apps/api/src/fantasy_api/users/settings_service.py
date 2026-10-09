@@ -11,6 +11,7 @@ from typing import Literal
 
 from dikit.time.clock import Clock
 from fantasy_api.errors import ApiProblem
+from fantasy_api.users.draft_settings import DraftDoc, validate
 from fantasy_api.users.settings import (
     DEFAULTS,
     LINK_CODE_TTL,
@@ -32,6 +33,14 @@ class StaleSettingsError(Exception):
         self.current = current
 
 
+class StaleDraftSettingsError(Exception):
+    """The caller's version is not the stored one; `current` is what is stored now."""
+
+    def __init__(self, current: DraftDoc) -> None:
+        super().__init__("stale draft settings")
+        self.current = current
+
+
 @dataclass
 class SettingsService:
     store: UserStore
@@ -48,6 +57,21 @@ class SettingsService:
             uid, updated, expected_version
         ):
             raise StaleSettingsError(self.get(uid))
+        return updated
+
+    def get_draft(self, uid: str) -> DraftDoc:
+        return self.store.get_draft_settings(uid) or DraftDoc()
+
+    def update_draft(self, uid: str, expected_version: int, raw: object) -> DraftDoc:
+        """The validated document, saved as the next version; raises `DraftSettingsError` or
+        `StaleDraftSettingsError`."""
+        data = validate(raw)  # a bad field is a 422 even when stale
+        current = self.get_draft(uid)
+        updated = DraftDoc(version=current.version + 1, data=data)
+        if current.version != expected_version or not self.store.save_draft_settings_if(
+            uid, updated, expected_version
+        ):
+            raise StaleDraftSettingsError(self.get_draft(uid))
         return updated
 
     def new_link_code(self, uid: str) -> LinkCode:
